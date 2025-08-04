@@ -1,69 +1,63 @@
-# React + TypeScript + Vite
+# Path Finder
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+### Visualise path finding algorithms
 
-Currently, two official plugins are available:
+### UI
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+##### Header
 
-## Expanding the ESLint configuration
+- Algorithm dropdown (select which algorithm to use)
+  - Colour the blocks visited, with deepening colour to signify depth
+  - Achieve depth tracking by storing each block visited as (position, depth),
+    and calculate current depth by adding 1 to prev block (parent's) depth
+- Current mouse type
+  - drag and drop to create walls
+  - eraser
+  - move start
+  - move end
+- Pre-made maze (Load random premade mazes, with varying difficulty)
+  - Use algorithm to generate maze (needs to be solvable), should we preload?
+  - When loading, use algorithm to generate from outside towards the inside
+    - Like a spiral
+- Clear (reset everything to one basic start and end)
+  - Clear maze, replace with start and end at fixed position
+    - Ripple effect from the centre, clearing everything.
+    - At the end, make start and end pop up.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+##### Body
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Grid containing the maze
+  - Store as 2D array with state
+- Cells
+  - 4 types of cells
+    - Empty
+    - Wall
+    - Start
+    - End
+  - Differentiate by colour or icon (e.g. flag)
+  - Animation
+    - When placing a wall, make it drop from top
+    -
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+### Plan
+- Create basic UI
+- List out all buttons
+- Create the grid
+- Add ability to add start and end
+  - Verify the grid types
+- Add ability to add wall
+  - Drag and drop (add some UI)
+- Add ability to erase walls & start & end
+- Add BFS (test it first)
+- Keep track of the path taken
+  - Parent children relationship, found the end, just traverse back along the parents to find the route
+  - Add UI to animate it after finished search from start to finish (colour differently)
+- Modify BFS with depth
+- If all cells traversed and no path found, maybe return something like not possible animation
+- Add UI, as cells are visited, colour them based on depth (permanent change to grid)
+- Continue testing
+- Add DFS
+- Add Dijkstra
+- Add generate maze
+- Add speed?
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
