@@ -10,3 +10,7 @@ export type CellType = (typeof CellType)[keyof typeof CellType];
 export interface Cell {
   type: CellType;
 }
+
+export interface CellActions {
+  
+}

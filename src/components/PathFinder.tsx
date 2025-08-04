@@ -7,6 +7,8 @@ const GRID_COLS = 71;
 
 const PathFinder = () => {
   const [grid, setGrid] = useState<Cell[][]>([]);
+  const [currentCellAction, setCurrentCellAction] = useState<CellType>(1);
+  const [isMouseDown, setIsMouseDown] = useState(false);
 
   const generateGrid = () => {
     setGrid(
@@ -21,6 +23,31 @@ const PathFinder = () => {
   useEffect(() => {
     generateGrid();
   }, []);
+
+  const handleCellAction = (row: number, col: number) => {
+    let resultValue: CellType = CellType.EMPTY;
+
+    switch (currentCellAction) {
+      case CellType.START:
+        resultValue = CellType.START;
+        break;
+      case CellType.END:
+        resultValue = CellType.END;
+        break;
+      case CellType.WALL:
+        resultValue = CellType.WALL;
+        break;
+    }
+
+    setGrid((prev) => {
+      const newGrid = prev.map((r) => [...r]);
+      newGrid[row][col] = {
+        type: resultValue,
+      };
+
+      return newGrid;
+    });
+  };
 
   return (
     <div
@@ -82,7 +109,11 @@ const PathFinder = () => {
           alignItems: "center",
         }}
       >
-        <div>
+        <div
+          onMouseDown={() => setIsMouseDown(true)}
+          onMouseUp={() => setIsMouseDown(false)}
+          onMouseLeave={() => setIsMouseDown(false)}
+        >
           {grid.map((row, rowIdx) => (
             <div key={rowIdx} style={{ display: "flex" }}>
               {row.map((cell, cellIdx) => {
@@ -106,6 +137,10 @@ const PathFinder = () => {
                 return (
                   <div
                     key={cellIdx}
+                    onMouseDown={() => handleCellAction(rowIdx, cellIdx)}
+                    onMouseEnter={() => {
+                      if (isMouseDown) handleCellAction(rowIdx, cellIdx);
+                    }}
                     style={{
                       width: 20,
                       height: 20,
