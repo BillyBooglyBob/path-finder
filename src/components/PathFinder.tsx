@@ -4,20 +4,50 @@ import Dropdown from "./Dropdown";
 
 const GRID_ROWS = 30;
 const GRID_COLS = 71;
+const MID_ROW = Math.floor(GRID_ROWS / 2);
+const MID_COL = Math.floor(GRID_COLS / 2);
+const DEFAULT_START_POSITION = {
+  row: MID_ROW,
+  col: MID_COL - 5,
+};
+const DEFAULT_END_POSITION = {
+  row: MID_ROW,
+  col: MID_COL + 5,
+};
 
 const PathFinder = () => {
   const [grid, setGrid] = useState<Cell[][]>([]);
+  const [startPosition, setStartPosition] = useState(DEFAULT_START_POSITION);
+  const [endPosition, setEndPosition] = useState(DEFAULT_END_POSITION);
   const [currentCellAction, setCurrentCellAction] = useState<CellType>(1);
   const [isMouseDown, setIsMouseDown] = useState(false);
 
+  // TODO:
+  // - Keep track of current start & end position, to guarantee there's only
+  //  ever one of each at a time
+  // - Allow overwrite with walls? If so, add extra check to reset the
+  //  start and end, so we can add a new one
+  // - Replace start and end with flags?
+  // - Add a search algorithm
+  // - Test search algorithm first
+  // - Implement path finding second
+  // -
+
   const generateGrid = () => {
-    setGrid(
-      Array.from({ length: GRID_ROWS }, () =>
-        Array.from({ length: GRID_COLS }, () => ({
-          type: CellType.EMPTY,
-        }))
-      )
+    const newGrid: Cell[][] = Array.from({ length: GRID_ROWS }, () =>
+      Array.from({ length: GRID_COLS }, () => ({
+        type: CellType.EMPTY,
+      }))
     );
+
+    newGrid[DEFAULT_START_POSITION.row][DEFAULT_START_POSITION.col] = {
+      type: CellType.START,
+    };
+    newGrid[DEFAULT_END_POSITION.row][DEFAULT_END_POSITION.col] = {
+      type: CellType.END,
+    };
+
+    setGrid(newGrid);
   };
 
   useEffect(() => {
@@ -25,6 +55,24 @@ const PathFinder = () => {
   }, []);
 
   const handleCellAction = (row: number, col: number) => {
+    // If START or END already defined and want to set it,
+    // just move the exisitng one by replacing it with empty, and
+    // moving to new position.
+
+    //
+    if (
+      currentCellAction !== CellType.START &&
+      row === startPosition.row &&
+      col === startPosition.col
+    )
+      return;
+    if (
+      currentCellAction !== CellType.END &&
+      row === endPosition.row &&
+      col === endPosition.col
+    )
+      return;
+
     let resultValue: CellType = CellType.EMPTY;
 
     switch (currentCellAction) {
@@ -39,14 +87,26 @@ const PathFinder = () => {
         break;
     }
 
-    setGrid((prev) => {
-      const newGrid = prev.map((r) => [...r]);
-      newGrid[row][col] = {
-        type: resultValue,
+    const newGrid = grid.map((r) => [...r]);
+    newGrid[row][col] = {
+      type: resultValue,
+    };
+
+    if (currentCellAction === CellType.START) {
+      newGrid[startPosition.row][startPosition.col] = {
+        type: CellType.EMPTY,
       };
 
-      return newGrid;
-    });
+      setStartPosition({ row, col });
+    }
+    if (currentCellAction === CellType.END) {
+      newGrid[endPosition.row][endPosition.col] = {
+        type: CellType.EMPTY,
+      };
+      setEndPosition({ row, col });
+    }
+
+    setGrid(newGrid);
   };
 
   return (
@@ -84,7 +144,21 @@ const PathFinder = () => {
             },
           ]}
         />
-        <div>Action</div>
+        <div>
+          <button onClick={() => setCurrentCellAction(CellType.WALL)}>
+            Set wall
+          </button>
+          <button onClick={() => setCurrentCellAction(CellType.START)}>
+            Set start
+          </button>
+          <button onClick={() => setCurrentCellAction(CellType.END)}>
+            Set end
+          </button>
+          <button onClick={() => setCurrentCellAction(CellType.EMPTY)}>
+            Erase
+          </button>
+          <button onClick={generateGrid}>Clear</button>
+        </div>
         <Dropdown
           title="Generate maze"
           buttons={[
