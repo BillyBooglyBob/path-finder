@@ -1,9 +1,26 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CellType, type Cell } from "../util/types";
 import Dropdown from "./Dropdown";
 
+const GRID_ROWS = 30;
+const GRID_COLS = 71;
+
 const PathFinder = () => {
   const [grid, setGrid] = useState<Cell[][]>([]);
+
+  const generateGrid = () => {
+    setGrid(
+      Array.from({ length: GRID_ROWS }, () =>
+        Array.from({ length: GRID_COLS }, () => ({
+          type: CellType.EMPTY,
+        }))
+      )
+    );
+  };
+
+  useEffect(() => {
+    generateGrid();
+  }, []);
 
   return (
     <div
