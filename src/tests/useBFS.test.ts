@@ -13,7 +13,7 @@ const createGrid = (rows: number, cols: number): Cell[][] => {
 };
 
 describe("useBFS", () => {
-  it("returns true when path exists", () => {
+  it("returns true when path exists", async () => {
     const grid = createGrid(3, 3);
     grid[2][2].type = CellType.END;
 
@@ -23,10 +23,10 @@ describe("useBFS", () => {
       setGrid: () => {},
     });
 
-    expect(bfs()).toBe(true);
+    expect(await bfs()).toBe(true);
   });
 
-  it("returns false when path is blocked", () => {
+  it("returns false when path is blocked", async () => {
     const grid = createGrid(3, 3);
     grid[0][1].type = CellType.WALL;
     grid[1][0].type = CellType.WALL;
@@ -38,10 +38,10 @@ describe("useBFS", () => {
       setGrid: () => {},
     });
 
-    expect(bfs()).toBe(false);
+    expect(await bfs()).toBe(false);
   });
 
-  it("returns true if start is END", () => {
+  it("returns true if start is END", async () => {
     const grid = createGrid(3, 3);
     grid[0][0].type = CellType.END;
 
@@ -51,6 +51,6 @@ describe("useBFS", () => {
       setGrid: () => {},
     });
 
-    expect(bfs()).toBe(true);
+    expect(await bfs()).toBe(true);
   });
 });

@@ -40,8 +40,6 @@ const useBFS = ({ start, grid, setGrid }: useBFSProps) => {
       DIRECTIONS.forEach(async ([rowChange, colChange]) => {
         const newRow = row + rowChange;
         const newCol = col + colChange;
-        const newDepth = (depth ?? 0) + 1;
-        const newType = newGrid[newRow][newCol].type;
 
         if (
           newRow < 0 ||
@@ -50,6 +48,9 @@ const useBFS = ({ start, grid, setGrid }: useBFSProps) => {
           newCol >= grid[0].length
         )
           return;
+
+        const newDepth = (depth ?? 0) + 1;
+        const newType = newGrid[newRow][newCol].type;
 
         const key = getKey(newRow, newCol);
         if (!visited.has(key)) {
