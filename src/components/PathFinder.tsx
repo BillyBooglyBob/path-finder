@@ -203,8 +203,8 @@ const PathFinder = () => {
                     break;
                   case CellType.VISITED:
                     const depth = cell.depth || 0;
-                    const lightness = Math.max(30, 80 - depth * 2); // decreases with depth
-                    backgroundColor = `hsl(220, 100%, ${lightness}%)`; // blue hue
+                    const lightness = Math.max(60, 99 - depth); // decreases with depth
+                    backgroundColor = `hsl(220, 70%, ${lightness}%)`; // blue hue
                     break;
                 }
 
@@ -221,7 +221,9 @@ const PathFinder = () => {
                       border: "1px solid #ccc",
                       backgroundColor,
                     }}
-                  />
+                  >
+                    {/* {cell.depth} */}
+                  </div>
                 );
               })}
             </div>

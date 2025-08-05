@@ -17,13 +17,6 @@ const DIRECTIONS = [
 const useBFS = ({ start, grid, setGrid }: useBFSProps) => {
   const bfsSearch = async () => {
     const newGrid = grid.map((r) => [...r]);
-    console.log("Started BFS");
-    // Queue
-    // While q
-    // - Pop
-    // - Found, return true
-    // - Visit neighbors, add if unvisited. Mark new as visited (push to stack)
-    // Return false
 
     const queue: Cell[] = [];
     const visited = new Set<string>();
@@ -34,29 +27,21 @@ const useBFS = ({ start, grid, setGrid }: useBFSProps) => {
     visited.add(getKey(start.row, start.col));
 
     while (queue.length > 0) {
-      console.log("Inside while loop");
       const currCell = queue.shift();
-      console.log("Current cell", currCell);
       if (!currCell) return;
-      console.log("Made past the cell");
 
       const row = currCell.row;
       const col = currCell.col;
       const depth = currCell.depth;
-      if (grid[row][col].type === CellType.END) {
-        console.log("Found the end");
-        return true;
-      }
-      if (grid[row][col].type === CellType.WALL) continue;
-      // if (grid[row][col].type === CellType.START) continue;
+      const cellType = grid[row][col].type;
+      if (cellType === CellType.END) return true;
+      if (cellType === CellType.WALL) continue;
 
-      // Define new grid to store updated values
-      console.log("Visitng neighbors");
-      DIRECTIONS.forEach(([rowChange, colChange]) => {
-        console.log("Inside directions");
+      DIRECTIONS.forEach(async ([rowChange, colChange]) => {
         const newRow = row + rowChange;
         const newCol = col + colChange;
-        const newDepth = depth ?? +1;
+        const newDepth = (depth ?? 0) + 1;
+        const newType = newGrid[newRow][newCol].type;
 
         if (
           newRow < 0 ||
@@ -68,6 +53,7 @@ const useBFS = ({ start, grid, setGrid }: useBFSProps) => {
 
         const key = getKey(newRow, newCol);
         if (!visited.has(key)) {
+          console.log("New depth:", newDepth);
           queue.push({
             type: CellType.VISITED,
             row: newRow,
@@ -77,23 +63,16 @@ const useBFS = ({ start, grid, setGrid }: useBFSProps) => {
           visited.add(key);
           newGrid[newRow][newCol] = {
             ...newGrid[newRow][newCol],
-            type: CellType.VISITED,
+            type: newType === CellType.EMPTY ? CellType.VISITED : newType,
             depth: newDepth,
           };
-
-          console.log(
-            `Visiting cell [${newRow}][${newCol}], marking as visited, depth: ${newDepth}`
-          );
+          const updatedGrid = newGrid.map((r) => [...r]);
+          await wait(3);
+          setGrid(updatedGrid);
         }
       });
-
-      console.log("Updates grid");
-      const updatedGrid = newGrid.map((r) => [...r]);
-      await wait(5);
-      setGrid(updatedGrid);
     }
 
-    console.log("returns false");
     return false;
   };
 
