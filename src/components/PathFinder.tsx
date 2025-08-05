@@ -23,29 +23,26 @@ const PathFinder = () => {
   const [isMouseDown, setIsMouseDown] = useState(false);
 
   // TODO:
-  // - Keep track of current start & end position, to guarantee there's only
-  //  ever one of each at a time
-  // - Allow overwrite with walls? If so, add extra check to reset the
-  //  start and end, so we can add a new one
   // - Replace start and end with flags?
   // - Add a search algorithm
   // - Test search algorithm first
   // - Implement path finding second
-  // -
+  // - To implement depth and dynamically show, needs to dynamically update the grid
+  //  so pass in setGrid
 
   const generateGrid = () => {
-    const newGrid: Cell[][] = Array.from({ length: GRID_ROWS }, () =>
-      Array.from({ length: GRID_COLS }, () => ({
+    const newGrid: Cell[][] = Array.from({ length: GRID_ROWS }, (_, row) =>
+      Array.from({ length: GRID_COLS }, (_, col) => ({
         type: CellType.EMPTY,
+        row,
+        col,
       }))
     );
 
-    newGrid[DEFAULT_START_POSITION.row][DEFAULT_START_POSITION.col] = {
-      type: CellType.START,
-    };
-    newGrid[DEFAULT_END_POSITION.row][DEFAULT_END_POSITION.col] = {
-      type: CellType.END,
-    };
+    newGrid[DEFAULT_START_POSITION.row][DEFAULT_START_POSITION.col].type =
+      CellType.START;
+    newGrid[DEFAULT_END_POSITION.row][DEFAULT_END_POSITION.col].type =
+      CellType.END;
 
     setGrid(newGrid);
   };
@@ -88,21 +85,14 @@ const PathFinder = () => {
     }
 
     const newGrid = grid.map((r) => [...r]);
-    newGrid[row][col] = {
-      type: resultValue,
-    };
+    newGrid[row][col].type = resultValue;
 
     if (currentCellAction === CellType.START) {
-      newGrid[startPosition.row][startPosition.col] = {
-        type: CellType.EMPTY,
-      };
-
+      newGrid[startPosition.row][startPosition.col].type = CellType.EMPTY;
       setStartPosition({ row, col });
     }
     if (currentCellAction === CellType.END) {
-      newGrid[endPosition.row][endPosition.col] = {
-        type: CellType.EMPTY,
-      };
+      newGrid[endPosition.row][endPosition.col].type = CellType.EMPTY;
       setEndPosition({ row, col });
     }
 

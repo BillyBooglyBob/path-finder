@@ -9,8 +9,8 @@ export type CellType = (typeof CellType)[keyof typeof CellType];
 
 export interface Cell {
   type: CellType;
+  row: number;
+  col: number;
 }
 
-export interface CellActions {
-  
-}
+export interface CellActions {}
