@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { CellType, type Cell } from "../util/types";
 import Dropdown from "./Dropdown";
 import useBFS from "../algorithms/useBFS";
+import useDFS from "../algorithms/useDFS";
 
 const GRID_ROWS = 30;
 const GRID_COLS = 71;
@@ -103,6 +104,7 @@ const PathFinder = () => {
   };
 
   const handleBFS = useBFS({ start: startPosition, grid, setGrid });
+  const handleDFS = useDFS({ start: startPosition, grid, setGrid });
 
   return (
     <div
@@ -131,7 +133,7 @@ const PathFinder = () => {
             },
             {
               name: "Depth First Search",
-              action: () => console.log("DFS searching..."),
+              action: handleDFS,
             },
             {
               name: "Dijkstra Search",
