@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react";
 import { CellType, type Cell } from "../util/types";
 import Dropdown from "./Dropdown";
+import useBFS from "../algorithms/useBFS";
 
 const GRID_ROWS = 30;
 const GRID_COLS = 71;
 const MID_ROW = Math.floor(GRID_ROWS / 2);
 const MID_COL = Math.floor(GRID_COLS / 2);
-const DEFAULT_START_POSITION = {
+const DEFAULT_START_POSITION: Cell = {
+  type: CellType.START,
   row: MID_ROW,
   col: MID_COL - 5,
 };
-const DEFAULT_END_POSITION = {
+const DEFAULT_END_POSITION: Cell = {
+  type: CellType.END,
   row: MID_ROW,
   col: MID_COL + 5,
 };
@@ -89,15 +92,17 @@ const PathFinder = () => {
 
     if (currentCellAction === CellType.START) {
       newGrid[startPosition.row][startPosition.col].type = CellType.EMPTY;
-      setStartPosition({ row, col });
+      setStartPosition({ ...startPosition, row, col });
     }
     if (currentCellAction === CellType.END) {
       newGrid[endPosition.row][endPosition.col].type = CellType.EMPTY;
-      setEndPosition({ row, col });
+      setEndPosition({ ...startPosition, row, col });
     }
 
     setGrid(newGrid);
   };
+
+  const handleBFS = useBFS({ start: startPosition, grid, setGrid });
 
   return (
     <div
@@ -122,7 +127,7 @@ const PathFinder = () => {
           buttons={[
             {
               name: "Breadth First Search",
-              action: () => console.log("BFS searching..."),
+              action: handleBFS,
             },
             {
               name: "Depth First Search",
@@ -195,6 +200,11 @@ const PathFinder = () => {
                     break;
                   case CellType.END:
                     backgroundColor = "red";
+                    break;
+                  case CellType.VISITED:
+                    const depth = cell.depth || 0;
+                    const lightness = Math.max(30, 80 - depth * 2); // decreases with depth
+                    backgroundColor = `hsl(220, 100%, ${lightness}%)`; // blue hue
                     break;
                 }
 

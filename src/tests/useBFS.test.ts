@@ -18,7 +18,7 @@ describe("useBFS", () => {
     grid[2][2].type = CellType.END;
 
     const bfs = useBFS({
-      start: { row: 0, col: 0 },
+      start: { type: CellType.START, row: 0, col: 0 },
       grid,
       setGrid: () => {},
     });
@@ -33,7 +33,7 @@ describe("useBFS", () => {
     grid[2][2].type = CellType.END;
 
     const bfs = useBFS({
-      start: { row: 0, col: 0 },
+      start: { type: CellType.START, row: 0, col: 0 },
       grid,
       setGrid: () => {},
     });
@@ -46,7 +46,7 @@ describe("useBFS", () => {
     grid[0][0].type = CellType.END;
 
     const bfs = useBFS({
-      start: { row: 0, col: 0 },
+      start: { type: CellType.START, row: 0, col: 0 },
       grid,
       setGrid: () => {},
     });
