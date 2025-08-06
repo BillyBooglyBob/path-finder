@@ -61,3 +61,15 @@
 - Add generate maze
 - Add speed?
 
+
+
+
+
+
+
+
+
+### Difficulties
+- Combine interactive UI with dynamic update
+- Allow same maze to be solved repeatedly by different algorithms
+- 

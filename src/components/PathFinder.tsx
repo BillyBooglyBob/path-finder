@@ -3,6 +3,7 @@ import { CellType, type Cell } from "../util/types";
 import Dropdown from "./Dropdown";
 import useBFS from "../algorithms/useBFS";
 import useDFS from "../algorithms/useDFS";
+import { wait } from "../util/util";
 
 const GRID_ROWS = 30;
 const GRID_COLS = 71;
@@ -27,12 +28,14 @@ const PathFinder = () => {
   const [isMouseDown, setIsMouseDown] = useState(false);
 
   // TODO:
-  // - Replace start and end with flags?
-  // - Add a search algorithm
-  // - Test search algorithm first
-  // - Implement path finding second
-  // - To implement depth and dynamically show, needs to dynamically update the grid
-  //  so pass in setGrid
+  // - Disable buttons once finished solving, or reset the grid?
+  //   - Problem is once solved, can solve again, which is covered by prev solve
+  //   - Once solves and click solved again, 1st reset the grid, remove all visited
+  // - Track visited path (probably use class?)
+  // - Add Dijkstra
+  // - Make button UI better
+  // - Add drop UI for walls
+  //   - Elevate Y, drop Y
 
   const generateGrid = () => {
     const newGrid: Cell[][] = Array.from({ length: GRID_ROWS }, (_, row) =>
@@ -56,11 +59,6 @@ const PathFinder = () => {
   }, []);
 
   const handleCellAction = (row: number, col: number) => {
-    // If START or END already defined and want to set it,
-    // just move the exisitng one by replacing it with empty, and
-    // moving to new position.
-
-    //
     if (
       currentCellAction !== CellType.START &&
       row === startPosition.row &&
@@ -103,8 +101,39 @@ const PathFinder = () => {
     setGrid(newGrid);
   };
 
-  const handleBFS = useBFS({ start: startPosition, grid, setGrid });
-  const handleDFS = useDFS({ start: startPosition, grid, setGrid });
+  const clearVisitedCells = () => {
+    return grid.map((r) =>
+      r.map((cell) => ({
+        ...cell,
+        type: cell.type === CellType.VISITED ? CellType.EMPTY : cell.type,
+        depth: 0,
+      }))
+    );
+  };
+
+  const runBFS = async () => {
+    const clearedGrid = clearVisitedCells();
+
+    setGrid(clearedGrid);
+    const handleBFS = useBFS({
+      start: startPosition,
+      grid: clearedGrid,
+      setGrid,
+    });
+    await handleBFS();
+  };
+
+  const runDFS = async () => {
+    const clearedGrid = clearVisitedCells();
+
+    setGrid(clearedGrid);
+    const handleDFS = useDFS({
+      start: startPosition,
+      grid: clearedGrid,
+      setGrid,
+    });
+    await handleDFS();
+  };
 
   return (
     <div
@@ -129,11 +158,11 @@ const PathFinder = () => {
           buttons={[
             {
               name: "Breadth First Search",
-              action: handleBFS,
+              action: runBFS,
             },
             {
               name: "Depth First Search",
-              action: handleDFS,
+              action: runDFS,
             },
             {
               name: "Dijkstra Search",
