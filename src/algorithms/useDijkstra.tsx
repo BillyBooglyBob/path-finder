@@ -54,7 +54,6 @@ const useDijkstra = ({ start, grid, setGrid }: useDijkstraProps) => {
 
         const key = getKey(newRow, newCol);
         if (!visited.has(key)) {
-          console.log("New depth:", newDepth);
           stack.push({
             type: CellType.VISITED,
             row: newRow,

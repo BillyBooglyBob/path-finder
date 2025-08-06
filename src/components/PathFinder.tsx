@@ -58,6 +58,24 @@ const PathFinder = () => {
     generateGrid();
   }, []);
 
+  const clearVisitedCells = () => {
+    const newGrid = grid.map((r) =>
+      r.map((cell) => ({
+        ...cell,
+        type:
+          cell.type === CellType.VISITED || cell.type === CellType.PATH
+            ? CellType.EMPTY
+            : cell.type,
+        depth: 0,
+      }))
+    );
+
+    newGrid[startPosition.row][startPosition.col].type = CellType.START;
+    newGrid[endPosition.row][endPosition.col].type = CellType.END;
+
+    return newGrid;
+  };
+
   const handleCellAction = (row: number, col: number) => {
     if (
       currentCellAction !== CellType.START &&
@@ -101,14 +119,26 @@ const PathFinder = () => {
     setGrid(newGrid);
   };
 
-  const clearVisitedCells = () => {
-    return grid.map((r) =>
-      r.map((cell) => ({
-        ...cell,
-        type: cell.type === CellType.VISITED ? CellType.EMPTY : cell.type,
-        depth: 0,
-      }))
-    );
+  const generatePath = async (endCell?: Cell) => {
+    if (!endCell) return;
+    const path: { row: number; col: number }[] = [];
+
+    let currCell: Cell | undefined = endCell;
+    while (currCell) {
+      path.push({ row: currCell.row, col: currCell.col });
+      currCell = currCell.parent;
+    }
+
+    path.reverse();
+    for (const cell of path) {
+      await wait(0.2);
+      setGrid((prev) => {
+        const currGrid = prev.map((r) => [...r]);
+        currGrid[cell.row][cell.col].type = CellType.PATH;
+        console.log("Pathing");
+        return currGrid;
+      });
+    }
   };
 
   const runBFS = async () => {
@@ -120,7 +150,10 @@ const PathFinder = () => {
       grid: clearedGrid,
       setGrid,
     });
-    await handleBFS();
+    const { found, endCell } = await handleBFS();
+    if (found) {
+      generatePath(endCell);
+    }
   };
 
   const runDFS = async () => {
@@ -133,6 +166,10 @@ const PathFinder = () => {
       setGrid,
     });
     await handleDFS();
+    // const { found, endCell } = await handleDFS();
+    // if (found) {
+    //   generatePath(endCell);
+    // }
   };
 
   return (
@@ -236,6 +273,9 @@ const PathFinder = () => {
                     const depth = cell.depth || 0;
                     const lightness = Math.max(60, 99 - depth); // decreases with depth
                     backgroundColor = `hsl(220, 70%, ${lightness}%)`; // blue hue
+                    break;
+                  case CellType.PATH:
+                    backgroundColor = "lightgreen";
                     break;
                 }
 

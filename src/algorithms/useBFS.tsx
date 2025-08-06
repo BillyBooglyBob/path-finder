@@ -15,7 +15,7 @@ const DIRECTIONS = [
 ];
 
 const useBFS = ({ start, grid, setGrid }: useBFSProps) => {
-  const bfsSearch = async () => {
+  const bfsSearch = async (): Promise<{ found: boolean; endCell?: Cell }> => {
     const newGrid = grid.map((r) => [...r]);
 
     const queue: Cell[] = [];
@@ -28,16 +28,19 @@ const useBFS = ({ start, grid, setGrid }: useBFSProps) => {
 
     while (queue.length > 0) {
       const currCell = queue.shift();
-      if (!currCell) return;
+      if (!currCell) continue;
 
       const row = currCell.row;
       const col = currCell.col;
       const depth = currCell.depth;
       const cellType = grid[row][col].type;
-      if (cellType === CellType.END) return true;
+      if (cellType === CellType.END) {
+        console.log("Return end cell");
+        return { found: true, endCell: currCell };
+      }
       if (cellType === CellType.WALL) continue;
 
-      DIRECTIONS.forEach(async ([rowChange, colChange]) => {
+      for (const [rowChange, colChange] of DIRECTIONS) {
         const newRow = row + rowChange;
         const newCol = col + colChange;
 
@@ -47,19 +50,19 @@ const useBFS = ({ start, grid, setGrid }: useBFSProps) => {
           newCol < 0 ||
           newCol >= grid[0].length
         )
-          return;
+          continue;
 
         const newDepth = (depth ?? 0) + 1;
         const newType = newGrid[newRow][newCol].type;
 
         const key = getKey(newRow, newCol);
         if (!visited.has(key)) {
-          console.log("New depth:", newDepth);
           queue.push({
             type: CellType.VISITED,
             row: newRow,
             col: newCol,
             depth: newDepth,
+            parent: { ...currCell },
           });
           visited.add(key);
           newGrid[newRow][newCol] = {
@@ -67,14 +70,16 @@ const useBFS = ({ start, grid, setGrid }: useBFSProps) => {
             type: newType === CellType.EMPTY ? CellType.VISITED : newType,
             depth: newDepth,
           };
-          const updatedGrid = newGrid.map((r) => [...r]);
-          await wait(3);
-          setGrid(updatedGrid);
-        }
-      });
-    }
 
-    return false;
+          const updatedGrid = newGrid.map((r) => [...r]);
+          await wait(0.2);
+          setGrid(updatedGrid);
+          console.log("Visiting");
+        }
+      }
+    }
+    console.log("Return end cell when false");
+    return { found: false };
   };
 
   return bfsSearch;

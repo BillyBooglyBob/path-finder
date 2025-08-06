@@ -54,7 +54,6 @@ const useDFS = ({ start, grid, setGrid }: useDFSProps) => {
 
         const key = getKey(newRow, newCol);
         if (!visited.has(key)) {
-          console.log("New depth:", newDepth);
           stack.push({
             type: CellType.VISITED,
             row: newRow,

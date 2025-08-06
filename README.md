@@ -40,6 +40,7 @@
     -
 
 ### Plan
+
 - Create basic UI
 - List out all buttons
 - Create the grid
@@ -61,15 +62,25 @@
 - Add generate maze
 - Add speed?
 
-
-
-
-
-
-
-
-
 ### Difficulties
+
 - Combine interactive UI with dynamic update
-- Allow same maze to be solved repeatedly by different algorithms
-- 
+- Allow same maze to be solved repeatedly by different algorithms.
+  - So clear the maze then pass the new maze to the solver.
+  - Ran into problem with cleared maze not being used by solver, since it is only accessible
+    in subsequent render. Solved by computing the cleared maze and assign to variable, then
+    pass variable to setter and the solver separately. Both get updated version.
+- Reconstruct the path, design decision between making parent a Cell or keep track of only coord.
+  - Chose later.
+    - More memory efficient.
+    - Avoids potential ciruclar reference from the start.
+- How to access the path? Make the search return the final node than have the parent visualiser
+  handle the path visualisation?
+  - Chose to return it, much easier to do. Reduce the complexity of the object since the path
+    visualiation is shared amongst the algorithms.
+- Path visualised prior to the visting cells.
+  - Issue is using waiting with promise between each visit, but the async operation
+    executes in random order due to using forEach, need to use for...of instead.
+- Path not visualising due to not create new copies of the grid at each update.
+  If update existing array and reassigning it, reference doesn't change. React
+  only re-renders when reference change.

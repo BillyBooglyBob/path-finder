@@ -23,7 +23,8 @@ describe("useBFS", () => {
       setGrid: () => {},
     });
 
-    expect(await bfs()).toBe(true);
+    const { found } = await bfs();
+    expect(found).toBe(true);
   });
 
   it("returns false when path is blocked", async () => {
@@ -38,7 +39,8 @@ describe("useBFS", () => {
       setGrid: () => {},
     });
 
-    expect(await bfs()).toBe(false);
+    const { found } = await bfs();
+    expect(found).toBe(false);
   });
 
   it("returns true if start is END", async () => {
@@ -51,6 +53,7 @@ describe("useBFS", () => {
       setGrid: () => {},
     });
 
-    expect(await bfs()).toBe(true);
+    const { found } = await bfs();
+    expect(found).toBe(true);
   });
 });

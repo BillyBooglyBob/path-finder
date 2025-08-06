@@ -4,6 +4,7 @@ export const CellType = {
   START: 2,
   END: 3,
   VISITED: 4,
+  PATH: 5
 } as const;
 
 export type CellType = (typeof CellType)[keyof typeof CellType];
@@ -13,6 +14,7 @@ export interface Cell {
   row: number;
   col: number;
   depth?: number;
+  parent?: Cell;
 }
 
 export interface CellActions {}
