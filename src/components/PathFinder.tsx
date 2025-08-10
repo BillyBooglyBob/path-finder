@@ -51,8 +51,10 @@ const PathFinder = () => {
   }, []);
 
   // TODO:
-  // - Make button UI better
   // - Add Dijkstra
+  //   - Need weights
+  // - Add recompute visited & path on start/end move, no need for animation
+  // - Add move start/end over other cells and not replace it
 
   const resetGrid = () => {
     const newGrid: Cell[][] = Array.from({ length: GRID_ROWS }, (_, row) =>
@@ -376,9 +378,39 @@ const PathFinder = () => {
           justifyContent: "space-between",
           alignItems: "center",
           padding: "0px 20px",
+          gap: "10px",
         }}
       >
         <h1 className="title">Path Finder</h1>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateRows: "repeat(2, auto)",
+            gridTemplateColumns: "repeat(3, auto)",
+            gap: "8px 20px",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div className="cell" style={{ backgroundColor: "black" }} />
+            <p>Wall</p>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div className="cell" style={{ backgroundColor: "green" }} />
+            <p>Start</p>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div className="cell" style={{ backgroundColor: "red" }} />
+            <p>End</p>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div className="cell" style={{ backgroundColor: "lightskyblue" }} />
+            <p>Visited</p>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div className="cell" style={{ backgroundColor: "yellow" }} />
+            <p>Path</p>
+          </div>
+        </div>
         <div style={{ display: "flex", gap: "1rem" }}>
           <Dropdown
             title="Algorithms"

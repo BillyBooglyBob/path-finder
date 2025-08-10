@@ -37,6 +37,7 @@
 
 .cell.wall {
   animation: wall 0.6s ease-out forwards;
+  background-color: black;
 }
 
 .cell.path {
@@ -45,6 +46,14 @@
 
 .cell.found {
   animation: found 0.6s ease-out forwards;
+}
+
+.cell.start {
+  background-color: green;
+}
+
+.cell.end {
+  background-color: red;
 }
 
 @keyframes visited {
