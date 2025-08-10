@@ -20,7 +20,6 @@ describe("useBFS", () => {
     const bfs = useBFS({
       start: { type: CellType.START, row: 0, col: 0 },
       grid,
-      setGrid: () => {},
     });
 
     const { found } = await bfs();
@@ -36,7 +35,6 @@ describe("useBFS", () => {
     const bfs = useBFS({
       start: { type: CellType.START, row: 0, col: 0 },
       grid,
-      setGrid: () => {},
     });
 
     const { found } = await bfs();
@@ -50,7 +48,6 @@ describe("useBFS", () => {
     const bfs = useBFS({
       start: { type: CellType.START, row: 0, col: 0 },
       grid,
-      setGrid: () => {},
     });
 
     const { found } = await bfs();

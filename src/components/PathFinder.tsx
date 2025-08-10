@@ -51,13 +51,10 @@ const PathFinder = () => {
   // - Disable buttons once finished solving, or reset the grid?
   //   - Problem is once solved, can solve again, which is covered by prev solve
   //   - Once solves and click solved again, 1st reset the grid, remove all visited
-  // - Track visited path (probably use class?)
   // - Add Dijkstra
   // - Make button UI better
-  // - Add drop UI for walls
-  //   - Elevate Y, drop Y
 
-  const generateGrid = () => {
+  const resetGrid = () => {
     const newGrid: Cell[][] = Array.from({ length: GRID_ROWS }, (_, row) =>
       Array.from({ length: GRID_COLS }, (_, col) => ({
         type: CellType.EMPTY,
@@ -75,7 +72,7 @@ const PathFinder = () => {
   };
 
   useEffect(() => {
-    generateGrid();
+    resetGrid();
   }, []);
 
   const clearPath = () => {
@@ -96,8 +93,7 @@ const PathFinder = () => {
     return newGrid;
   };
 
-  // Given final cell, generate the visit path
-  const generatePath = async (endCell?: Cell) => {
+  const visualisePath = async (endCell?: Cell) => {
     if (!endCell) return;
     const path: { row: number; col: number }[] = [];
 
@@ -121,6 +117,23 @@ const PathFinder = () => {
       if (updates % 3 === 0) {
         await wait(50); // smooth animation
       }
+    }
+  };
+
+  const visualiseVisited = async (visitedNodes: Cell[]) => {
+    const newGrid = deepCloneGrid(grid);
+    for (let i = 0; i < visitedNodes.length; i++) {
+      const currNode = visitedNodes[i];
+
+      newGrid[currNode.row][currNode.col] = {
+        ...currNode,
+        type: currNode.type,
+        depth: currNode.depth,
+      };
+
+      setGrid(deepCloneGrid(newGrid));
+
+      await wait(15);
     }
   };
 
@@ -176,12 +189,11 @@ const PathFinder = () => {
     const handleBFS = useBFS({
       start: startPosition,
       grid: clearedGrid,
-      setGrid,
-      // gridRef: gridRef,
     });
-    const { found, endCell } = await handleBFS();
+    const { found, endCell, visited } = await handleBFS();
+    await visualiseVisited(visited);
     if (found) {
-      generatePath(endCell);
+      visualisePath(endCell);
     }
   };
 
@@ -196,7 +208,7 @@ const PathFinder = () => {
     });
     const { found, endCell } = await handleDFS();
     if (found) {
-      generatePath(endCell);
+      visualisePath(endCell);
     }
   };
 
@@ -236,7 +248,7 @@ const PathFinder = () => {
           ]}
         />
         <div>
-          <button onClick={generateGrid}>Clear</button>
+          <button onClick={resetGrid}>Clear</button>
         </div>
         <Dropdown
           title="Generate maze"
