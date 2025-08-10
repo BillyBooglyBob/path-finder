@@ -54,7 +54,6 @@ const useBFS = ({ start, grid }: PathfindingInput) => {
           continue;
 
         const newDepth = (depth ?? 0) + 1;
-        const newType = newGrid[newRow][newCol].type;
 
         const key = getKey(newRow, newCol);
         if (!visited.has(key)) {
@@ -66,11 +65,6 @@ const useBFS = ({ start, grid }: PathfindingInput) => {
             parent: { ...currCell },
           });
           visited.add(key);
-          // visitedNodes.push({
-          //   ...newGrid[newRow][newCol],
-          //   type: newType === CellType.EMPTY ? CellType.VISITED : newType,
-          //   depth: newDepth,
-          // });
         }
       }
     }

@@ -22,7 +22,7 @@ const DEFAULT_END_POSITION: Cell = {
 const PathFinder = () => {
   const [grid, setGrid] = useState<Cell[][]>([]);
   const [startPosition, setStartPosition] = useState(DEFAULT_START_POSITION);
-  const [endPosition, setEndPosition] = useState(DEFAULT_END_POSITION);
+  // const [endPosition, setEndPosition] = useState(DEFAULT_END_POSITION);
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [draggingType, setDraggingType] = useState<CellType | null>(null); // START, END, or null
   const lastDraggedPosition = useRef<{ row: number; col: number } | null>(null);
@@ -212,7 +212,7 @@ const PathFinder = () => {
     if (draggingType === CellType.START) {
       setStartPosition((prev) => ({ ...prev, row, col }));
     } else if (draggingType === CellType.END) {
-      setEndPosition((prev) => ({ ...prev, row, col }));
+      // setEndPosition((prev) => ({ ...prev, row, col }));
     }
 
     // Update DOM for new position
@@ -225,7 +225,7 @@ const PathFinder = () => {
       } else if (draggingType === CellType.END) {
         newElement.style.backgroundColor = "red";
         newElement.className = "cell";
-        setEndPosition((prev) => ({ ...prev, row, col }));
+        // setEndPosition((prev) => ({ ...prev, row, col }));
       }
     }
 
