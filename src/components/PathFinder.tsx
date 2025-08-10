@@ -8,27 +8,38 @@ import "./PathFinder.css";
 
 const GRID_ROWS = 30;
 const GRID_COLS = 71;
-const MID_ROW = Math.floor(GRID_ROWS / 2);
-const MID_COL = Math.floor(GRID_COLS / 2);
 const DEFAULT_START_POSITION: Cell = {
   type: CellType.START,
-  row: MID_ROW,
-  col: MID_COL - 5,
+  row: 15,
+  col: 30,
 };
 const DEFAULT_END_POSITION: Cell = {
   type: CellType.END,
-  row: MID_ROW,
-  col: MID_COL + 5,
+  row: 15,
+  col: 40,
 };
 
 const PathFinder = () => {
   const [grid, setGrid] = useState<Cell[][]>([]);
   const [startPosition, setStartPosition] = useState(DEFAULT_START_POSITION);
   const [endPosition, setEndPosition] = useState(DEFAULT_END_POSITION);
-  const [currentCellAction, setCurrentCellAction] = useState<CellType>(1);
   const [isMouseDown, setIsMouseDown] = useState(false);
+  const [draggingType, setDraggingType] = useState<CellType | null>(null); // START, END, or null
+  const lastDraggedPosition = useRef<{ row: number; col: number } | null>(null);
 
-  const gridRef = useRef(grid);
+  useEffect(() => {
+    const handleMouseUp = () => {
+      setIsMouseDown(false);
+      setDraggingType(null);
+      lastDraggedPosition.current = null;
+    };
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
+
+  // const gridRef = useRef(grid);
 
   // TODO:
   // - Cell visits not as smooth anymore, how to improve it? Was smooth because
@@ -61,14 +72,15 @@ const PathFinder = () => {
       CellType.END;
 
     setGrid(newGrid);
-    gridRef.current = newGrid;
+    // gridRef.current = newGrid;
   };
 
   useEffect(() => {
     generateGrid();
   }, []);
 
-  const clearVisitedCells = () => {
+  // Keep the start, end and walls. Remove all visited cells only.
+  const clearPath = () => {
     const newGrid = grid.map((r) =>
       r.map((cell) => ({
         ...cell,
@@ -86,49 +98,65 @@ const PathFinder = () => {
     return newGrid;
   };
 
-  const handleCellAction = (row: number, col: number) => {
-    if (
-      currentCellAction !== CellType.START &&
-      row === startPosition.row &&
-      col === startPosition.col
-    )
-      return;
-    if (
-      currentCellAction !== CellType.END &&
-      row === endPosition.row &&
-      col === endPosition.col
-    )
-      return;
+  // const handleCellAction = (cell: Cell) => {
+  //   const row = cell.row;
+  //   const col = cell.col;
 
-    let resultValue: CellType = CellType.EMPTY;
+  //   // Prevent changing start and end
+  //   // if (
+  //   //   currentCellAction !== CellType.START &&
+  //   //   row === startPosition.row &&
+  //   //   col === startPosition.col
+  //   // )
+  //   //   return;
+  //   // if (
+  //   //   currentCellAction !== CellType.END &&
+  //   //   row === endPosition.row &&
+  //   //   col === endPosition.col
+  //   // )
+  //   //   return;
 
-    switch (currentCellAction) {
-      case CellType.START:
-        resultValue = CellType.START;
-        break;
-      case CellType.END:
-        resultValue = CellType.END;
-        break;
-      case CellType.WALL:
-        resultValue = CellType.WALL;
-        break;
-    }
+  //   // Figure out what value to set the cell
+  //   // - If wall, erase it
+  //   // - If empty, set wall
 
-    const newGrid = grid.map((r) => [...r]);
-    if (currentCellAction === CellType.START) {
-      newGrid[startPosition.row][startPosition.col].type = CellType.EMPTY;
-      setStartPosition({ ...startPosition, row, col });
-    }
-    if (currentCellAction === CellType.END) {
-      newGrid[endPosition.row][endPosition.col].type = CellType.EMPTY;
-      setEndPosition({ ...startPosition, row, col });
-    }
+  //   // For start and end, move them with drag and drop
+  //   // - OnMouseDown select it
+  //   // - OnMouseMove, move it around
+  //   // - OnMouseLeave, put it down
+  //   let resultValue: CellType = CellType.EMPTY;
 
-    newGrid[row][col].type = resultValue;
-    gridRef.current[row][col].type = resultValue;
-    setGrid(newGrid);
-  };
+  //   switch (cell.type) {
+  //     case CellType.START:
+  //       resultValue = CellType.START;
+  //       break;
+  //     case CellType.END:
+  //       resultValue = CellType.END;
+  //       break;
+  //     case CellType.EMPTY:
+  //       resultValue = CellType.WALL;
+  //       break;
+  //     case CellType.WALL:
+  //       resultValue = CellType.EMPTY;
+  //   }
 
+  //   // // Set start and end if current action has them selected
+  //   const newGrid = grid.map((r) => [...r]);
+  //   // if (currentCellAction === CellType.START) {
+  //   //   newGrid[startPosition.row][startPosition.col].type = CellType.EMPTY;
+  //   //   setStartPosition({ ...startPosition, row, col });
+  //   // }
+  //   // if (currentCellAction === CellType.END) {
+  //   //   newGrid[endPosition.row][endPosition.col].type = CellType.EMPTY;
+  //   //   setEndPosition({ ...startPosition, row, col });
+  //   // }
+
+  //   newGrid[row][col].type = resultValue;
+  //   gridRef.current[row][col].type = resultValue;
+  //   setGrid(newGrid);
+  // };
+
+  // Given final cell, generate the visit path
   const generatePath = async (endCell?: Cell) => {
     if (!endCell) return;
     const path: { row: number; col: number }[] = [];
@@ -156,15 +184,59 @@ const PathFinder = () => {
     }
   };
 
+  const handlePaintCell = (cell: Cell) => {
+    const { row, col, type } = cell;
+
+    if (type === CellType.START || type === CellType.END) return;
+
+    const newType = type === CellType.WALL ? CellType.EMPTY : CellType.WALL;
+
+    const newGrid = grid.map((r) => [...r]);
+    newGrid[row][col].type = newType;
+    setGrid(newGrid);
+  };
+
+  const handleMoveSpecialCell = (cell: Cell) => {
+    const { row, col } = cell;
+    const newGrid = grid.map((r) => [...r]);
+
+    // If new position is the other special cell. E.g. current draggingType is start
+    // but we are going over the end, don't overwrite the end, just stop.
+    if (
+      (draggingType === CellType.START && cell.type === CellType.END) ||
+      (draggingType === CellType.END && cell.type === CellType.START)
+    )
+      return;
+
+    if (lastDraggedPosition.current) {
+      // Remove old position
+      const { row: prevRow, col: prevCol } = lastDraggedPosition.current;
+      newGrid[prevRow][prevCol].type = CellType.EMPTY;
+    }
+
+    // Place new position
+    if (!draggingType) return;
+    newGrid[row][col].type = draggingType;
+    lastDraggedPosition.current = { row, col };
+
+    if (draggingType === CellType.START) {
+      setStartPosition((prev) => ({ ...prev, row, col }));
+    } else if (draggingType === CellType.END) {
+      setEndPosition((prev) => ({ ...prev, row, col }));
+    }
+
+    setGrid(newGrid);
+  };
+
   const runBFS = async () => {
-    const clearedGrid = clearVisitedCells();
+    const clearedGrid = clearPath();
 
     setGrid(clearedGrid);
     const handleBFS = useBFS({
       start: startPosition,
       grid: clearedGrid,
       setGrid,
-      gridRef: gridRef,
+      // gridRef: gridRef,
     });
     const { found, endCell } = await handleBFS();
     if (found) {
@@ -173,7 +245,7 @@ const PathFinder = () => {
   };
 
   const runDFS = async () => {
-    const clearedGrid = clearVisitedCells();
+    const clearedGrid = clearPath();
 
     setGrid(clearedGrid);
     const handleDFS = useDFS({
@@ -223,18 +295,6 @@ const PathFinder = () => {
           ]}
         />
         <div>
-          <button onClick={() => setCurrentCellAction(CellType.WALL)}>
-            Set wall
-          </button>
-          <button onClick={() => setCurrentCellAction(CellType.START)}>
-            Set start
-          </button>
-          <button onClick={() => setCurrentCellAction(CellType.END)}>
-            Set end
-          </button>
-          <button onClick={() => setCurrentCellAction(CellType.EMPTY)}>
-            Erase
-          </button>
           <button onClick={generateGrid}>Clear</button>
         </div>
         <Dropdown
@@ -301,12 +361,37 @@ const PathFinder = () => {
                 return (
                   <div
                     key={cellIdx}
-                    onMouseDown={() => handleCellAction(rowIdx, cellIdx)}
-                    onMouseEnter={() => {
-                      if (isMouseDown) handleCellAction(rowIdx, cellIdx);
-                    }}
                     className={cellClass}
                     style={{ backgroundColor }}
+                    onMouseDown={() => {
+                      if (
+                        cell.type === CellType.START ||
+                        cell.type === CellType.END
+                      ) {
+                        setDraggingType(cell.type); // START or END
+                        // handleMoveSpecialCell(cell);
+                        setIsMouseDown(true);
+                        lastDraggedPosition.current = {
+                          row: cell.row,
+                          col: cell.col,
+                        };
+                      } else {
+                        setDraggingType(CellType.WALL);
+                        handlePaintCell(cell);
+                        setIsMouseDown(true);
+                      }
+                    }}
+                    onMouseEnter={() => {
+                      if (!isMouseDown) return;
+                      if (
+                        draggingType === CellType.START ||
+                        draggingType === CellType.END
+                      ) {
+                        handleMoveSpecialCell(cell);
+                      } else {
+                        handlePaintCell(cell);
+                      }
+                    }}
                   />
                 );
               })}
