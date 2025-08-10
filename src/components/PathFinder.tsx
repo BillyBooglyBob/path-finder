@@ -421,12 +421,14 @@ const PathFinder = () => {
                 name: "Depth First Search",
                 action: runDFS,
               },
-              {
-                name: "Dijkstra Search",
-                action: () => console.log("Dijkstra searching..."),
-              },
+              // {
+              //   name: "Dijkstra Search",
+              //   action: () => console.log("Dijkstra searching..."),
+              // },
             ]}
           />
+          {/* 
+          
           <Dropdown
             title="Generate maze"
             disabled={traversing}
@@ -441,6 +443,8 @@ const PathFinder = () => {
               },
             ]}
           />
+          
+          */}
           <button className="button" disabled={traversing} onClick={resetGrid}>
             Reset Grid
           </button>
