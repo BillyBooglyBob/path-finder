@@ -1,5 +1,5 @@
 import { CellType, type Cell } from "../util/types";
-import { wait } from "../util/util";
+import { finishUpdate, wait } from "../util/util";
 
 interface useDFSProps {
   start: Cell;
@@ -15,7 +15,7 @@ const DIRECTIONS = [
 ];
 
 const useDFS = ({ start, grid, setGrid }: useDFSProps) => {
-  const DFSSearch = async () => {
+  const DFSSearch = async (): Promise<{ found: boolean; endCell?: Cell }> => {
     const newGrid = grid.map((r) => [...r]);
 
     const stack: Cell[] = [];
@@ -26,18 +26,23 @@ const useDFS = ({ start, grid, setGrid }: useDFSProps) => {
     stack.push({ ...start, depth: 0 });
     visited.add(getKey(start.row, start.col));
 
+    let updates = 0;
+
     while (stack.length > 0) {
       const currCell = stack.pop();
-      if (!currCell) return;
+      if (!currCell) continue;
 
       const row = currCell.row;
       const col = currCell.col;
       const depth = currCell.depth;
-      const cellType = grid[row][col].type;
-      if (cellType === CellType.END) return true;
+      const cellType = newGrid[row][col].type;
+      if (cellType === CellType.END) {
+        finishUpdate(newGrid, setGrid);
+        return { found: true, endCell: currCell };
+      }
       if (cellType === CellType.WALL) continue;
 
-      DIRECTIONS.forEach(async ([rowChange, colChange]) => {
+      for (const [rowChange, colChange] of DIRECTIONS) {
         const newRow = row + rowChange;
         const newCol = col + colChange;
 
@@ -47,7 +52,7 @@ const useDFS = ({ start, grid, setGrid }: useDFSProps) => {
           newCol < 0 ||
           newCol >= grid[0].length
         )
-          return;
+          continue;
 
         const newDepth = (depth ?? 0) + 1;
         const newType = newGrid[newRow][newCol].type;
@@ -59,6 +64,7 @@ const useDFS = ({ start, grid, setGrid }: useDFSProps) => {
             row: newRow,
             col: newCol,
             depth: newDepth,
+            parent: { ...currCell },
           });
           visited.add(key);
           newGrid[newRow][newCol] = {
@@ -66,14 +72,20 @@ const useDFS = ({ start, grid, setGrid }: useDFSProps) => {
             type: newType === CellType.EMPTY ? CellType.VISITED : newType,
             depth: newDepth,
           };
-          const updatedGrid = newGrid.map((r) => [...r]);
-          await wait(3);
-          setGrid(updatedGrid);
+
+          updates++;
+
+          if (updates % 3 === 0) {
+            const updatedGrid = newGrid.map((r) => [...r]);
+            await wait(50);
+            setGrid(updatedGrid);
+          }
         }
-      });
+      }
     }
 
-    return false;
+    finishUpdate(newGrid, setGrid);
+    return { found: false };
   };
 
   return DFSSearch;

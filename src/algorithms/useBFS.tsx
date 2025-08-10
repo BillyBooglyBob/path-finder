@@ -1,23 +1,19 @@
+import { DIRECTIONS } from "../util/constant";
 import { CellType, type Cell } from "../util/types";
-import { wait } from "../util/util";
+import { deepCloneGrid, wait } from "../util/util";
 
 interface useBFSProps {
   start: Cell;
   grid: Cell[][];
   setGrid: (grid: Cell[][]) => void;
+  gridRef: React.RefObject<Cell[][]>;
 }
 
-const DIRECTIONS = [
-  [0, -1],
-  [0, 1],
-  [1, 0],
-  [-1, 0],
-];
-
 const useBFS = ({ start, grid, setGrid }: useBFSProps) => {
-  const bfsSearch = async (): Promise<{ found: boolean; endCell?: Cell }> => {
-    const newGrid = grid.map((r) => [...r]);
+  const newGrid = grid.map((r) => [...r]);
+  const visitedNodes: Cell[] = [];
 
+  const bfsSearch = async (): Promise<{ found: boolean; endCell?: Cell }> => {
     const queue: Cell[] = [];
     const visited = new Set<string>();
 
@@ -33,9 +29,9 @@ const useBFS = ({ start, grid, setGrid }: useBFSProps) => {
       const row = currCell.row;
       const col = currCell.col;
       const depth = currCell.depth;
-      const cellType = grid[row][col].type;
+      const cellType = newGrid[row][col].type;
       if (cellType === CellType.END) {
-        console.log("Return end cell");
+        await visualise();
         return { found: true, endCell: currCell };
       }
       if (cellType === CellType.WALL) continue;
@@ -65,21 +61,32 @@ const useBFS = ({ start, grid, setGrid }: useBFSProps) => {
             parent: { ...currCell },
           });
           visited.add(key);
-          newGrid[newRow][newCol] = {
+          visitedNodes.push({
             ...newGrid[newRow][newCol],
             type: newType === CellType.EMPTY ? CellType.VISITED : newType,
             depth: newDepth,
-          };
-
-          const updatedGrid = newGrid.map((r) => [...r]);
-          await wait(0.2);
-          setGrid(updatedGrid);
-          console.log("Visiting");
+          });
         }
       }
     }
-    console.log("Return end cell when false");
+    await visualise();
     return { found: false };
+  };
+
+  const visualise = async () => {
+    for (let i = 0; i < visitedNodes.length; i++) {
+      const currNode = visitedNodes[i];
+
+      newGrid[currNode.row][currNode.col] = {
+        ...currNode,
+        type: currNode.type,
+        depth: currNode.depth,
+      };
+
+      setGrid(deepCloneGrid(newGrid));
+
+      await wait(15);
+    }
   };
 
   return bfsSearch;

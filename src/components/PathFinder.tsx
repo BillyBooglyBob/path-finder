@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CellType, type Cell } from "../util/types";
 import Dropdown from "./Dropdown";
 import useBFS from "../algorithms/useBFS";
 import useDFS from "../algorithms/useDFS";
-import { wait } from "../util/util";
+import { deepCloneGrid, wait } from "../util/util";
+import "./PathFinder.css";
 
 const GRID_ROWS = 30;
 const GRID_COLS = 71;
@@ -27,7 +28,15 @@ const PathFinder = () => {
   const [currentCellAction, setCurrentCellAction] = useState<CellType>(1);
   const [isMouseDown, setIsMouseDown] = useState(false);
 
+  const gridRef = useRef(grid);
+
   // TODO:
+  // - Cell visits not as smooth anymore, how to improve it? Was smooth because
+  //   async nature
+  //    - Update with useRef hook. So grid displayed is a separate ref. We update
+  //      the ref. Whenever we run an algorithm, it is on the ref.
+  //    - Original grid remains within the state. You can modify the walls, start,
+  //      end, weighted walls. Actual visit, path are not created here.
   // - Disable buttons once finished solving, or reset the grid?
   //   - Problem is once solved, can solve again, which is covered by prev solve
   //   - Once solves and click solved again, 1st reset the grid, remove all visited
@@ -52,6 +61,7 @@ const PathFinder = () => {
       CellType.END;
 
     setGrid(newGrid);
+    gridRef.current = newGrid;
   };
 
   useEffect(() => {
@@ -105,8 +115,6 @@ const PathFinder = () => {
     }
 
     const newGrid = grid.map((r) => [...r]);
-    newGrid[row][col].type = resultValue;
-
     if (currentCellAction === CellType.START) {
       newGrid[startPosition.row][startPosition.col].type = CellType.EMPTY;
       setStartPosition({ ...startPosition, row, col });
@@ -116,6 +124,8 @@ const PathFinder = () => {
       setEndPosition({ ...startPosition, row, col });
     }
 
+    newGrid[row][col].type = resultValue;
+    gridRef.current[row][col].type = resultValue;
     setGrid(newGrid);
   };
 
@@ -130,14 +140,19 @@ const PathFinder = () => {
     }
 
     path.reverse();
+
+    let updates = 0;
     for (const cell of path) {
-      await wait(0.2);
+      updates++;
       setGrid((prev) => {
-        const currGrid = prev.map((r) => [...r]);
-        currGrid[cell.row][cell.col].type = CellType.PATH;
-        console.log("Pathing");
-        return currGrid;
+        const newGrid = deepCloneGrid(prev);
+        newGrid[cell.row][cell.col].type = CellType.PATH;
+        return newGrid;
       });
+
+      if (updates % 3 === 0) {
+        await wait(50); // smooth animation
+      }
     }
   };
 
@@ -149,6 +164,7 @@ const PathFinder = () => {
       start: startPosition,
       grid: clearedGrid,
       setGrid,
+      gridRef: gridRef,
     });
     const { found, endCell } = await handleBFS();
     if (found) {
@@ -165,11 +181,10 @@ const PathFinder = () => {
       grid: clearedGrid,
       setGrid,
     });
-    await handleDFS();
-    // const { found, endCell } = await handleDFS();
-    // if (found) {
-    //   generatePath(endCell);
-    // }
+    const { found, endCell } = await handleDFS();
+    if (found) {
+      generatePath(endCell);
+    }
   };
 
   return (
@@ -251,6 +266,7 @@ const PathFinder = () => {
           onMouseUp={() => setIsMouseDown(false)}
           onMouseLeave={() => setIsMouseDown(false)}
         >
+          {/* {gridRef.current.map((row, rowIdx) => ( */}
           {grid.map((row, rowIdx) => (
             <div key={rowIdx} style={{ display: "flex" }}>
               {row.map((cell, cellIdx) => {
@@ -279,6 +295,9 @@ const PathFinder = () => {
                     break;
                 }
 
+                const cellClass =
+                  cell.type === CellType.VISITED ? "cell visited" : "cell";
+
                 return (
                   <div
                     key={cellIdx}
@@ -286,15 +305,9 @@ const PathFinder = () => {
                     onMouseEnter={() => {
                       if (isMouseDown) handleCellAction(rowIdx, cellIdx);
                     }}
-                    style={{
-                      width: 20,
-                      height: 20,
-                      border: "1px solid #ccc",
-                      backgroundColor,
-                    }}
-                  >
-                    {/* {cell.depth} */}
-                  </div>
+                    className={cellClass}
+                    style={{ backgroundColor }}
+                  />
                 );
               })}
             </div>

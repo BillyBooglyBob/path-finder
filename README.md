@@ -84,3 +84,7 @@
 - Path not visualising due to not create new copies of the grid at each update.
   If update existing array and reassigning it, reference doesn't change. React
   only re-renders when reference change.
+- Laggy animation if we update at every single cell, since cloning the grid
+  is expensive. Solve by batching the update, only re-compute grid every 3 steps.
+  Prevent any steps from being left out by adding any extra grid update prior
+  to return.

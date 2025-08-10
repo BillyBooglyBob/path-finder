@@ -1,0 +1,27 @@
+.cell {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #ccc;
+}
+
+.cell.visited {
+  transform: scale(1.2);
+  border-radius: 50%;
+  animation: growToFull 0.6s ease-out forwards;
+}
+
+@keyframes growToFull {
+  0% {
+    transform: scale(0.2);
+    border-radius: 100%;
+    background-color: hsl(220, 70%, 95%);
+  }
+  50% {
+    border-radius: 50%;
+    background-color: hsl(221, 71%, 84%);
+  }
+  100% {
+    transform: scale(1);
+    border-radius: 0%;
+  }
+}
