@@ -17,15 +17,7 @@ const Dropdown = ({ title, buttons, disabled }: DropdownProps) => {
       onMouseLeave={() => setShowDropdown(false)}
       style={{ position: "relative", display: "inline-block" }}
     >
-      <div
-        onMouseEnter={() => setShowDropdown(true)}
-        style={{
-          border: "1px solid #ccc",
-          borderRadius: "6px 6px 0px 0px",
-          fontWeight: 500,
-          padding: "10px 16px",
-        }}
-      >
+      <div onMouseEnter={() => setShowDropdown(true)} className="button">
         {title} ▼
       </div>
       {showDropdown && (

@@ -51,11 +51,8 @@ const PathFinder = () => {
   }, []);
 
   // TODO:
-  // - Disable buttons once finished solving, or reset the grid?
-  //   - Problem is once solved, can solve again, which is covered by prev solve
-  //   - Once solves and click solved again, 1st reset the grid, remove all visited
-  // - Add Dijkstra
   // - Make button UI better
+  // - Add Dijkstra
 
   const resetGrid = () => {
     const newGrid: Cell[][] = Array.from({ length: GRID_ROWS }, (_, row) =>
@@ -381,46 +378,51 @@ const PathFinder = () => {
           padding: "0px 20px",
         }}
       >
-        <Dropdown
-          title="Algorithms"
-          disabled={traversing}
-          buttons={[
-            {
-              name: "Breadth First Search",
-              action: runBFS,
-            },
-            {
-              name: "Depth First Search",
-              action: runDFS,
-            },
-            {
-              name: "Dijkstra Search",
-              action: () => console.log("Dijkstra searching..."),
-            },
-          ]}
-        />
-        <div>
-          <button disabled={traversing} onClick={resetGrid}>
+        <h1 className="title">Path Finder</h1>
+        <div style={{ display: "flex", gap: "1rem" }}>
+          <Dropdown
+            title="Algorithms"
+            disabled={traversing}
+            buttons={[
+              {
+                name: "Breadth First Search",
+                action: runBFS,
+              },
+              {
+                name: "Depth First Search",
+                action: runDFS,
+              },
+              {
+                name: "Dijkstra Search",
+                action: () => console.log("Dijkstra searching..."),
+              },
+            ]}
+          />
+          <Dropdown
+            title="Generate maze"
+            disabled={traversing}
+            buttons={[
+              {
+                name: "Big maze",
+                action: () => console.log("Generating big maze"),
+              },
+              {
+                name: "Big curve",
+                action: () => console.log("Generating big curve"),
+              },
+            ]}
+          />
+          <button className="button" disabled={traversing} onClick={resetGrid}>
             Reset Grid
           </button>
-          <button disabled={traversing} onClick={clearAnimationFromDOM}>
+          <button
+            className="button"
+            disabled={traversing}
+            onClick={clearAnimationFromDOM}
+          >
             Clear Path
           </button>
         </div>
-        <Dropdown
-          title="Generate maze"
-          disabled={traversing}
-          buttons={[
-            {
-              name: "Big maze",
-              action: () => console.log("Generating big maze"),
-            },
-            {
-              name: "Big curve",
-              action: () => console.log("Generating big curve"),
-            },
-          ]}
-        />
       </header>
 
       <div
