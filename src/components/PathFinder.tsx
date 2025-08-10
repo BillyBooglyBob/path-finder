@@ -6,8 +6,8 @@ import useDFS from "../algorithms/useDFS";
 import { wait } from "../util/util";
 import "./PathFinder.css";
 
-const GRID_ROWS = 30;
-const GRID_COLS = 71;
+const GRID_ROWS = 29;
+const GRID_COLS = 70;
 const DEFAULT_START_POSITION: Cell = {
   type: CellType.START,
   row: 15,
@@ -73,14 +73,14 @@ const PathFinder = () => {
 
     setGrid(newGrid);
     // TODO: Do we need setTimeout?
-    setTimeout(() => syncDOMWithReactState(), 0);
+    setTimeout(() => syncDOMWithReactState(newGrid), 0);
   };
 
   useEffect(() => {
     resetGrid();
   }, []);
 
-  const syncDOMWithReactState = () => {
+  const syncDOMWithReactState = (grid: Cell[][]) => {
     console.log("🔄 Syncing DOM with React state...");
 
     for (let row = 0; row < GRID_ROWS; row++) {
@@ -401,7 +401,10 @@ const PathFinder = () => {
         />
         <div>
           <button disabled={traversing} onClick={resetGrid}>
-            Clear
+            Reset Grid
+          </button>
+          <button disabled={traversing} onClick={clearAnimationFromDOM}>
+            Clear Path
           </button>
         </div>
         <Dropdown
@@ -432,6 +435,9 @@ const PathFinder = () => {
           onMouseDown={() => setIsMouseDown(true)}
           onMouseUp={() => setIsMouseDown(false)}
           onMouseLeave={() => setIsMouseDown(false)}
+          style={{
+            padding: "0.3rem",
+          }}
         >
           {grid.map((row, rowIdx) => (
             <div key={rowIdx} style={{ display: "flex" }}>
