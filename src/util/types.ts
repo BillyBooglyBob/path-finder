@@ -19,7 +19,7 @@ export interface Cell {
 
 export interface PathfindingInput {
   start: Cell;
-  // end: Cell;  // Add this - you'll need it
+  end?: Cell;
   grid: Cell[][];
 }
 
@@ -27,5 +27,4 @@ export interface PathfindingResult {
   found: boolean;
   endCell?: Cell;
   visited: Cell[];
-  // path: Cell[];  // Add this - the actual solution path
 }

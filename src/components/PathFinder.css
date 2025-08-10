@@ -36,7 +36,7 @@
 }
 
 .cell.wall {
-  animation: wall 0.6s ease-out forwards;
+  animation: wall 0.3s ease-out forwards;
   background-color: black;
 }
 

@@ -31,7 +31,6 @@ const useDFS = ({ start, grid }: PathfindingInput) => {
       }
       if (cellType === CellType.WALL) continue;
 
-      visited.add(getKey(row, col));
       visitedNodes.push({
         ...newGrid[row][col],
         type: cellType === CellType.EMPTY ? CellType.VISITED : cellType,
@@ -60,7 +59,7 @@ const useDFS = ({ start, grid }: PathfindingInput) => {
             depth: newDepth,
             parent: { ...currCell },
           });
-          // visited.add(key);
+          visited.add(key);
         }
       }
     }

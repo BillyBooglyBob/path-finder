@@ -71,8 +71,7 @@ const PathFinder = () => {
       CellType.END;
 
     setGrid(newGrid);
-    // TODO: Do we need setTimeout?
-    setTimeout(() => syncDOMWithReactState(newGrid), 0);
+    syncDOMWithReactState(newGrid);
   };
 
   useEffect(() => {
@@ -80,14 +79,12 @@ const PathFinder = () => {
   }, []);
 
   const syncDOMWithReactState = (grid: Cell[][]) => {
-    console.log("🔄 Syncing DOM with React state...");
-
     for (let row = 0; row < GRID_ROWS; row++) {
       for (let col = 0; col < GRID_COLS; col++) {
         const cell = grid[row][col];
         const domElement = cellsRef.current[row][col];
 
-        if (!domElement) continue; // Skip if ref not set yet
+        if (!domElement) continue;
 
         // Update DOM element to match React state
         let backgroundColor;
@@ -123,8 +120,6 @@ const PathFinder = () => {
 
   // Clear only animation-related visual elements (visited/path) from DOM
   const clearAnimationFromDOM = () => {
-    console.log("🧹 Clearing animation elements from DOM...");
-
     for (let row = 0; row < GRID_ROWS; row++) {
       for (let col = 0; col < GRID_COLS; col++) {
         const domElement = cellsRef.current[row][col];
@@ -164,7 +159,6 @@ const PathFinder = () => {
     const { row, col, type } = cell;
 
     if (type === CellType.START || type === CellType.END) return;
-    console.log(`Painting cell of type: ${cell.type}`);
 
     const newType = type === CellType.WALL ? CellType.EMPTY : CellType.WALL;
 
@@ -296,7 +290,10 @@ const PathFinder = () => {
             className = "cell found";
             break;
           default:
-            const lightness = Math.max(60, 99 - (depth ? depth : 0));
+            const lightness = Math.max(
+              50,
+              99 - Math.floor(depth ? depth : 0) / 2
+            );
             backgroundColor = `hsl(220, 70%, ${lightness}%)`;
         }
         domElement.style.backgroundColor = backgroundColor;
