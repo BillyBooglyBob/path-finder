@@ -12,6 +12,10 @@
   animation: wall 0.6s ease-out forwards;
 }
 
+.cell.path {
+  animation: path 0.6s ease-out forwards;
+}
+
 @keyframes visited {
   0% {
     transform: scale(0.2);
@@ -29,6 +33,18 @@
 }
 
 @keyframes wall {
+  0% {
+    transform: scale(0.2);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(0.95);
+  }
+}
+
+@keyframes path {
   0% {
     transform: scale(0.2);
   }

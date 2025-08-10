@@ -30,6 +30,13 @@ const PathFinder = () => {
     null
   );
   const [isGridCleared, setIsGridCleared] = useState(false);
+  const cellsRef = useRef<(HTMLDivElement | null)[][]>([]);
+
+  useEffect(() => {
+    cellsRef.current = Array.from({ length: GRID_ROWS }, () =>
+      Array.from({ length: GRID_COLS }, () => null)
+    );
+  }, []);
 
   useEffect(() => {
     const handleMouseUp = () => {
@@ -42,8 +49,6 @@ const PathFinder = () => {
       window.removeEventListener("mouseup", handleMouseUp);
     };
   }, []);
-
-  // const gridRef = useRef(grid);
 
   // TODO:
   // - Cell visits not as smooth anymore, how to improve it? Was smooth because
@@ -73,29 +78,192 @@ const PathFinder = () => {
       CellType.END;
 
     setGrid(newGrid);
+    // TODO: Do we need setTimeout?
+    setTimeout(() => syncDOMWithReactState(), 0);
   };
 
   useEffect(() => {
     resetGrid();
   }, []);
 
+  const syncDOMWithReactState = () => {
+    console.log("🔄 Syncing DOM with React state...");
+
+    for (let row = 0; row < GRID_ROWS; row++) {
+      for (let col = 0; col < GRID_COLS; col++) {
+        const cell = grid[row][col];
+        const domElement = cellsRef.current[row][col];
+
+        if (!domElement) continue; // Skip if ref not set yet
+
+        // Update DOM element to match React state
+        let backgroundColor;
+        let className;
+
+        switch (cell.type) {
+          case CellType.EMPTY:
+            backgroundColor = "white";
+            className = "cell";
+            break;
+          case CellType.WALL:
+            backgroundColor = "black";
+            className = "cell wall";
+            break;
+          case CellType.START:
+            backgroundColor = "green";
+            className = "cell";
+            break;
+          case CellType.END:
+            backgroundColor = "red";
+            className = "cell";
+            break;
+          default:
+            backgroundColor = "white";
+            className = "cell";
+        }
+
+        domElement.style.backgroundColor = backgroundColor;
+        domElement.className = className;
+      }
+    }
+  };
+
+  // Clear only animation-related visual elements (visited/path) from DOM
+  const clearAnimationFromDOM = () => {
+    console.log("🧹 Clearing animation elements from DOM...");
+
+    for (let row = 0; row < GRID_ROWS; row++) {
+      for (let col = 0; col < GRID_COLS; col++) {
+        const domElement = cellsRef.current[row][col];
+        if (!domElement) continue;
+
+        // Only clear if it's a visited or path cell
+        if (
+          domElement.className.includes("visited") ||
+          domElement.className.includes("path")
+        ) {
+          // Check what the React state says this cell should be
+          const cell = grid[row][col];
+          switch (cell.type) {
+            case CellType.EMPTY:
+              domElement.style.backgroundColor = "white";
+              domElement.className = "cell";
+              break;
+            case CellType.WALL:
+              domElement.style.backgroundColor = "black";
+              domElement.className = "cell wall";
+              break;
+            case CellType.START:
+              domElement.style.backgroundColor = "green";
+              domElement.className = "cell";
+              break;
+            case CellType.END:
+              domElement.style.backgroundColor = "red";
+              domElement.className = "cell";
+              break;
+          }
+        }
+      }
+    }
+  };
+
+  const handlePaintCell = (cell: Cell) => {
+    const { row, col, type } = cell;
+
+    if (type === CellType.START || type === CellType.END) return;
+    console.log(`Painting cell of type: ${cell.type}`);
+
+    const newType = type === CellType.WALL ? CellType.EMPTY : CellType.WALL;
+
+    const newGrid = grid.map((r) => [...r]);
+    newGrid[row][col].type = newType;
+    setGrid(newGrid);
+
+    // Immediate update DOM element
+    const domElement = cellsRef.current[row][col];
+    if (domElement) {
+      if (newType === CellType.WALL) {
+        domElement.style.backgroundColor = "black";
+        domElement.className = "cell wall";
+      } else {
+        domElement.style.backgroundColor = "white";
+        domElement.className = "cell";
+      }
+    }
+  };
+
+  const handleMoveSpecialCell = (cell: Cell) => {
+    const { row, col } = cell;
+    const newGrid = grid.map((r) => [...r]);
+
+    // If new position is the other special cell. E.g. current draggingType is start
+    // but we are going over the end, don't overwrite the end, just stop.
+    if (
+      (draggingType === CellType.START && cell.type === CellType.END) ||
+      (draggingType === CellType.END && cell.type === CellType.START)
+    )
+      return;
+
+    if (lastDraggedPosition.current) {
+      // Remove old position
+      const { row: prevRow, col: prevCol } = lastDraggedPosition.current;
+      newGrid[prevRow][prevCol].type = CellType.EMPTY;
+
+      // Update DOM for old position
+      const oldElement = cellsRef.current[prevRow][prevCol];
+      if (oldElement) {
+        oldElement.style.backgroundColor = "white";
+        oldElement.className = "cell";
+      }
+    }
+
+    // Place new position
+    if (!draggingType) return;
+    newGrid[row][col].type = draggingType;
+    lastDraggedPosition.current = { row, col };
+
+    if (draggingType === CellType.START) {
+      setStartPosition((prev) => ({ ...prev, row, col }));
+    } else if (draggingType === CellType.END) {
+      setEndPosition((prev) => ({ ...prev, row, col }));
+    }
+
+    // Update DOM for new position
+    const newElement = cellsRef.current[row][col];
+    if (newElement) {
+      if (draggingType === CellType.START) {
+        newElement.style.backgroundColor = "green";
+        newElement.className = "cell";
+        setStartPosition((prev) => ({ ...prev, row, col }));
+      } else if (draggingType === CellType.END) {
+        newElement.style.backgroundColor = "red";
+        newElement.className = "cell";
+        setEndPosition((prev) => ({ ...prev, row, col }));
+      }
+    }
+
+    setGrid(newGrid);
+  };
+
   const clearPath = () => {
-    const clearedGrid = grid.map((r) =>
-      r.map((cell) => ({
-        ...cell,
-        type:
-          cell.type === CellType.VISITED || cell.type === CellType.PATH
-            ? CellType.EMPTY
-            : cell.type,
-        depth: 0,
-      }))
-    );
-
-    clearedGrid[startPosition.row][startPosition.col].type = CellType.START;
-    clearedGrid[endPosition.row][endPosition.col].type = CellType.END;
-
-    setGrid(clearedGrid);
+    clearAnimationFromDOM();
     setIsGridCleared(true);
+    // const clearedGrid = grid.map((r) =>
+    //   r.map((cell) => ({
+    //     ...cell,
+    //     type:
+    //       cell.type === CellType.VISITED || cell.type === CellType.PATH
+    //         ? CellType.EMPTY
+    //         : cell.type,
+    //     depth: 0,
+    //   }))
+    // );
+
+    // clearedGrid[startPosition.row][startPosition.col].type = CellType.START;
+    // clearedGrid[endPosition.row][endPosition.col].type = CellType.END;
+
+    // setGrid(clearedGrid);
+    // setIsGridCleared(true);
   };
 
   const visualisePath = async (endCell?: Cell) => {
@@ -130,6 +298,34 @@ const PathFinder = () => {
     }
   };
 
+  const visualisePathDom = async (endCell?: Cell) => {
+    if (!endCell) return;
+
+    const path: Cell[] = [];
+    let currCell: Cell | undefined = endCell;
+
+    while (currCell) {
+      path.push(currCell);
+      currCell = currCell.parent;
+    }
+
+    path.reverse();
+
+    for (let i = 0; i < path.length; i++) {
+      const { row, col } = path[i];
+      const domElement = cellsRef.current[row][col];
+
+      if (domElement) {
+        domElement.style.backgroundColor = "yellow";
+        domElement.className = "cell path";
+      }
+
+      if (i % 2 === 0) {
+        await wait(30);
+      }
+    }
+  };
+
   const visualiseVisited = async (visitedNodes: Cell[]) => {
     for (let i = 0; i < visitedNodes.length; i++) {
       const currNode = visitedNodes[i];
@@ -148,49 +344,21 @@ const PathFinder = () => {
     }
   };
 
-  const handlePaintCell = (cell: Cell) => {
-    const { row, col, type } = cell;
+  const visualiseVisitedDom = async (visitedNodes: Cell[]) => {
+    for (let i = 0; i < visitedNodes.length; i++) {
+      const { row, col, depth } = visitedNodes[i];
+      const domElement = cellsRef.current[row][col];
 
-    if (type === CellType.START || type === CellType.END) return;
-    console.log(`Painting cell of type: ${cell.type}`);
+      if (domElement) {
+        const lightness = Math.max(60, 99 - (depth ? depth : 0));
+        domElement.style.backgroundColor = `hsl(220, 70%, ${lightness}%)`;
+        domElement.className = "cell visited";
+      }
 
-    const newType = type === CellType.WALL ? CellType.EMPTY : CellType.WALL;
-
-    const newGrid = grid.map((r) => [...r]);
-    newGrid[row][col].type = newType;
-    setGrid(newGrid);
-  };
-
-  const handleMoveSpecialCell = (cell: Cell) => {
-    const { row, col } = cell;
-    const newGrid = grid.map((r) => [...r]);
-
-    // If new position is the other special cell. E.g. current draggingType is start
-    // but we are going over the end, don't overwrite the end, just stop.
-    if (
-      (draggingType === CellType.START && cell.type === CellType.END) ||
-      (draggingType === CellType.END && cell.type === CellType.START)
-    )
-      return;
-
-    if (lastDraggedPosition.current) {
-      // Remove old position
-      const { row: prevRow, col: prevCol } = lastDraggedPosition.current;
-      newGrid[prevRow][prevCol].type = CellType.EMPTY;
+      if (i % 5 === 0) {
+        await wait(10);
+      }
     }
-
-    // Place new position
-    if (!draggingType) return;
-    newGrid[row][col].type = draggingType;
-    lastDraggedPosition.current = { row, col };
-
-    if (draggingType === CellType.START) {
-      setStartPosition((prev) => ({ ...prev, row, col }));
-    } else if (draggingType === CellType.END) {
-      setEndPosition((prev) => ({ ...prev, row, col }));
-    }
-
-    setGrid(newGrid);
   };
 
   // useEffect to run algorithm after grid is cleared and rendered
@@ -222,12 +390,9 @@ const PathFinder = () => {
 
         if (result) {
           const { found, endCell, visited } = result;
-
-          // TODO: Visited and path are both returned, so they can be handled together.
-          // Perhaps good chance to use useRef to update the grid.
-          await visualiseVisited(visited);
+          await visualiseVisitedDom(visited);
           if (found) {
-            await visualisePath(endCell);
+            await visualisePathDom(endCell);
           }
         }
       } finally {
@@ -334,21 +499,21 @@ const PathFinder = () => {
                   case CellType.END:
                     backgroundColor = "red";
                     break;
-                  case CellType.VISITED:
-                    const depth = cell.depth || 0;
-                    const lightness = Math.max(60, 99 - depth); // decreases with depth
-                    backgroundColor = `hsl(220, 70%, ${lightness}%)`;
-                    break;
-                  case CellType.PATH:
-                    backgroundColor = "lightgreen";
-                    break;
+                  // case CellType.VISITED:
+                  //   const depth = cell.depth || 0;
+                  //   const lightness = Math.max(60, 99 - depth); // decreases with depth
+                  //   backgroundColor = `hsl(220, 70%, ${lightness}%)`;
+                  //   break;
+                  // case CellType.PATH:
+                  //   backgroundColor = "lightgreen";
+                  //   break;
                 }
 
                 let cellClass: string;
                 switch (cell.type) {
-                  case CellType.VISITED:
-                    cellClass = "cell visited";
-                    break;
+                  // case CellType.VISITED:
+                  //   cellClass = "cell visited";
+                  //   break;
                   case CellType.WALL:
                     cellClass = "cell wall";
                     break;
@@ -359,6 +524,9 @@ const PathFinder = () => {
                 return (
                   <div
                     key={cellIdx}
+                    ref={(el) => {
+                      cellsRef.current[rowIdx][cellIdx] = el;
+                    }}
                     className={cellClass}
                     style={{ backgroundColor }}
                     onMouseDown={() => {

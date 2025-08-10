@@ -88,3 +88,15 @@
   is expensive. Solve by batching the update, only re-compute grid every 3 steps.
   Prevent any steps from being left out by adding any extra grid update prior
   to return.
+
+  - Optimisation strategy:
+    - Shallow cloning instead of deep cloning, so reusing as much existing cells as possible
+    - Batch updating
+    - Update DOM directly with useRef (fastest)
+
+
+- Handle both drag and paint (wall/eraser) and drag and move (start/end)
+  - Use separate handler for each cell
+  - Set a global eventlListener to handle cases where the mouse exits the grid
+  - When drag and move, keep track of which cell we're moving and the last cell visited
+    to clear the last cell and prevent painting
