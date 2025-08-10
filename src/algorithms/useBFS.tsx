@@ -6,7 +6,6 @@ interface useBFSProps {
   start: Cell;
   grid: Cell[][];
   setGrid: (grid: Cell[][]) => void;
-  // gridRef: React.RefObject<Cell[][]>;
 }
 
 const useBFS = ({ start, grid, setGrid }: useBFSProps) => {

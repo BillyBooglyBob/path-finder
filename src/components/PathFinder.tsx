@@ -72,14 +72,12 @@ const PathFinder = () => {
       CellType.END;
 
     setGrid(newGrid);
-    // gridRef.current = newGrid;
   };
 
   useEffect(() => {
     generateGrid();
   }, []);
 
-  // Keep the start, end and walls. Remove all visited cells only.
   const clearPath = () => {
     const newGrid = grid.map((r) =>
       r.map((cell) => ({
@@ -97,64 +95,6 @@ const PathFinder = () => {
 
     return newGrid;
   };
-
-  // const handleCellAction = (cell: Cell) => {
-  //   const row = cell.row;
-  //   const col = cell.col;
-
-  //   // Prevent changing start and end
-  //   // if (
-  //   //   currentCellAction !== CellType.START &&
-  //   //   row === startPosition.row &&
-  //   //   col === startPosition.col
-  //   // )
-  //   //   return;
-  //   // if (
-  //   //   currentCellAction !== CellType.END &&
-  //   //   row === endPosition.row &&
-  //   //   col === endPosition.col
-  //   // )
-  //   //   return;
-
-  //   // Figure out what value to set the cell
-  //   // - If wall, erase it
-  //   // - If empty, set wall
-
-  //   // For start and end, move them with drag and drop
-  //   // - OnMouseDown select it
-  //   // - OnMouseMove, move it around
-  //   // - OnMouseLeave, put it down
-  //   let resultValue: CellType = CellType.EMPTY;
-
-  //   switch (cell.type) {
-  //     case CellType.START:
-  //       resultValue = CellType.START;
-  //       break;
-  //     case CellType.END:
-  //       resultValue = CellType.END;
-  //       break;
-  //     case CellType.EMPTY:
-  //       resultValue = CellType.WALL;
-  //       break;
-  //     case CellType.WALL:
-  //       resultValue = CellType.EMPTY;
-  //   }
-
-  //   // // Set start and end if current action has them selected
-  //   const newGrid = grid.map((r) => [...r]);
-  //   // if (currentCellAction === CellType.START) {
-  //   //   newGrid[startPosition.row][startPosition.col].type = CellType.EMPTY;
-  //   //   setStartPosition({ ...startPosition, row, col });
-  //   // }
-  //   // if (currentCellAction === CellType.END) {
-  //   //   newGrid[endPosition.row][endPosition.col].type = CellType.EMPTY;
-  //   //   setEndPosition({ ...startPosition, row, col });
-  //   // }
-
-  //   newGrid[row][col].type = resultValue;
-  //   gridRef.current[row][col].type = resultValue;
-  //   setGrid(newGrid);
-  // };
 
   // Given final cell, generate the visit path
   const generatePath = async (endCell?: Cell) => {
@@ -188,6 +128,7 @@ const PathFinder = () => {
     const { row, col, type } = cell;
 
     if (type === CellType.START || type === CellType.END) return;
+    console.log(`Painting cell of type: ${cell.type}`);
 
     const newType = type === CellType.WALL ? CellType.EMPTY : CellType.WALL;
 
@@ -316,7 +257,6 @@ const PathFinder = () => {
         style={{
           display: "flex",
           flex: "5",
-          backgroundColor: "lightseagreen",
           justifyContent: "center",
           alignItems: "center",
         }}
@@ -355,8 +295,17 @@ const PathFinder = () => {
                     break;
                 }
 
-                const cellClass =
-                  cell.type === CellType.VISITED ? "cell visited" : "cell";
+                let cellClass: string;
+                switch (cell.type) {
+                  case CellType.VISITED:
+                    cellClass = "cell visited";
+                    break;
+                  case CellType.WALL:
+                    cellClass = "cell wall";
+                    break;
+                  default:
+                    cellClass = "cell";
+                }
 
                 return (
                   <div

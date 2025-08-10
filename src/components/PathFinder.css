@@ -5,23 +5,37 @@
 }
 
 .cell.visited {
-  transform: scale(1.2);
-  border-radius: 50%;
-  animation: growToFull 0.6s ease-out forwards;
+  animation: visited 0.6s ease-out forwards;
 }
 
-@keyframes growToFull {
+.cell.wall {
+  animation: wall 0.6s ease-out forwards;
+}
+
+@keyframes visited {
   0% {
     transform: scale(0.2);
     border-radius: 100%;
-    background-color: hsl(220, 70%, 95%);
+    background-color: hsl(111, 71%, 84%);
   }
   50% {
     border-radius: 50%;
-    background-color: hsl(221, 71%, 84%);
+    background-color: hsl(66, 71%, 84%);
   }
   100% {
     transform: scale(1);
     border-radius: 0%;
+  }
+}
+
+@keyframes wall {
+  0% {
+    transform: scale(0.2);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(0.95);
   }
 }
