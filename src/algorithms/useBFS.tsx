@@ -1,24 +1,18 @@
 import { DIRECTIONS } from "../util/constant";
-import { CellType, type Cell } from "../util/types";
+import {
+  CellType,
+  type Cell,
+  type PathfindingInput,
+  type PathfindingResult,
+} from "../util/types";
+import { getKey } from "../util/util";
 
-interface useBFSProps {
-  start: Cell;
-  grid: Cell[][];
-}
-
-const useBFS = ({ start, grid }: useBFSProps) => {
+const useBFS = ({ start, grid }: PathfindingInput) => {
   const newGrid = grid.map((r) => [...r]);
-  const visitedNodes: Cell[] = [];
-
-  const bfsSearch = async (): Promise<{
-    found: boolean;
-    endCell?: Cell;
-    visited: Cell[];
-  }> => {
+  const bfsSearch = async (): Promise<PathfindingResult> => {
+    const visitedNodes: Cell[] = [];
     const queue: Cell[] = [];
     const visited = new Set<string>();
-
-    const getKey = (row: number, col: number) => `${row} ${col}`;
 
     queue.push({ ...start, depth: 0 });
     visited.add(getKey(start.row, start.col));

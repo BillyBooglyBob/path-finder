@@ -20,10 +20,10 @@ describe("useDFS", () => {
     const dfs = useDFS({
       start: { type: CellType.START, row: 0, col: 0 },
       grid,
-      setGrid: () => {},
     });
 
-    expect(await dfs()).toBe(true);
+    const { found } = await dfs();
+    expect(found).toBe(true);
   });
 
   it("returns false when path is blocked", async () => {
@@ -35,10 +35,10 @@ describe("useDFS", () => {
     const dfs = useDFS({
       start: { type: CellType.START, row: 0, col: 0 },
       grid,
-      setGrid: () => {},
     });
 
-    expect(await dfs()).toBe(false);
+    const { found } = await dfs();
+    expect(found).toBe(false);
   });
 
   it("returns true if start is END", async () => {
@@ -48,10 +48,10 @@ describe("useDFS", () => {
     const dfs = useDFS({
       start: { type: CellType.START, row: 0, col: 0 },
       grid,
-      setGrid: () => {},
     });
 
-    expect(await dfs()).toBe(true);
+    const { found } = await dfs();
+    expect(found).toBe(true);
   });
 
   it("handles large grid with no walls", async () => {
@@ -61,10 +61,10 @@ describe("useDFS", () => {
     const dfs = useDFS({
       start: { type: CellType.START, row: 0, col: 0 },
       grid,
-      setGrid: () => {},
     });
 
-    expect(await dfs()).toBe(true);
+    const { found } = await dfs();
+    expect(found).toBe(true);
   });
 
   it("returns false if END is unreachable due to walls", async () => {
@@ -82,9 +82,9 @@ describe("useDFS", () => {
     const dfs = useDFS({
       start: { type: CellType.START, row: 0, col: 0 },
       grid,
-      setGrid: () => {},
     });
 
-    expect(await dfs()).toBe(false);
+    const { found } = await dfs();
+    expect(found).toBe(false);
   });
 });

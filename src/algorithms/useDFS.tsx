@@ -1,32 +1,21 @@
-import { CellType, type Cell } from "../util/types";
-import { finishUpdate, wait } from "../util/util";
+import { DIRECTIONS } from "../util/constant";
+import {
+  CellType,
+  type Cell,
+  type PathfindingInput,
+  type PathfindingResult,
+} from "../util/types";
+import { getKey } from "../util/util";
 
-interface useDFSProps {
-  start: Cell;
-  grid: Cell[][];
-  setGrid: (grid: Cell[][]) => void;
-}
-
-const DIRECTIONS = [
-  [0, -1],
-  [0, 1],
-  [1, 0],
-  [-1, 0],
-];
-
-const useDFS = ({ start, grid, setGrid }: useDFSProps) => {
-  const DFSSearch = async (): Promise<{ found: boolean; endCell?: Cell }> => {
-    const newGrid = grid.map((r) => [...r]);
-
+const useDFS = ({ start, grid }: PathfindingInput) => {
+  const newGrid = grid.map((r) => [...r]);
+  const DFSSearch = async (): Promise<PathfindingResult> => {
     const stack: Cell[] = [];
     const visited = new Set<string>();
-
-    const getKey = (row: number, col: number) => `${row} ${col}`;
+    const visitedNodes: Cell[] = [];
 
     stack.push({ ...start, depth: 0 });
     visited.add(getKey(start.row, start.col));
-
-    let updates = 0;
 
     while (stack.length > 0) {
       const currCell = stack.pop();
@@ -37,8 +26,7 @@ const useDFS = ({ start, grid, setGrid }: useDFSProps) => {
       const depth = currCell.depth;
       const cellType = newGrid[row][col].type;
       if (cellType === CellType.END) {
-        finishUpdate(newGrid, setGrid);
-        return { found: true, endCell: currCell };
+        return { found: true, endCell: currCell, visited: visitedNodes };
       }
       if (cellType === CellType.WALL) continue;
 
@@ -67,25 +55,16 @@ const useDFS = ({ start, grid, setGrid }: useDFSProps) => {
             parent: { ...currCell },
           });
           visited.add(key);
-          newGrid[newRow][newCol] = {
+          visitedNodes.push({
             ...newGrid[newRow][newCol],
             type: newType === CellType.EMPTY ? CellType.VISITED : newType,
             depth: newDepth,
-          };
-
-          updates++;
-
-          if (updates % 3 === 0) {
-            const updatedGrid = newGrid.map((r) => [...r]);
-            await wait(50);
-            setGrid(updatedGrid);
-          }
+          });
         }
       }
     }
 
-    finishUpdate(newGrid, setGrid);
-    return { found: false };
+    return { found: false, visited: visitedNodes };
   };
 
   return DFSSearch;

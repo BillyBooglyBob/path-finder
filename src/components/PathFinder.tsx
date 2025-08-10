@@ -26,6 +26,10 @@ const PathFinder = () => {
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [draggingType, setDraggingType] = useState<CellType | null>(null); // START, END, or null
   const lastDraggedPosition = useRef<{ row: number; col: number } | null>(null);
+  const [algorithmToRun, setAlgorithmToRun] = useState<"BFS" | "DFS" | null>(
+    null
+  );
+  const [isGridCleared, setIsGridCleared] = useState(false);
 
   useEffect(() => {
     const handleMouseUp = () => {
@@ -76,7 +80,7 @@ const PathFinder = () => {
   }, []);
 
   const clearPath = () => {
-    const newGrid = grid.map((r) =>
+    const clearedGrid = grid.map((r) =>
       r.map((cell) => ({
         ...cell,
         type:
@@ -87,10 +91,11 @@ const PathFinder = () => {
       }))
     );
 
-    newGrid[startPosition.row][startPosition.col].type = CellType.START;
-    newGrid[endPosition.row][endPosition.col].type = CellType.END;
+    clearedGrid[startPosition.row][startPosition.col].type = CellType.START;
+    clearedGrid[endPosition.row][endPosition.col].type = CellType.END;
 
-    return newGrid;
+    setGrid(clearedGrid);
+    setIsGridCleared(true);
   };
 
   const visualisePath = async (endCell?: Cell) => {
@@ -110,7 +115,12 @@ const PathFinder = () => {
       updates++;
       setGrid((prev) => {
         const newGrid = deepCloneGrid(prev);
-        newGrid[cell.row][cell.col].type = CellType.PATH;
+        const { row, col } = cell;
+        const cellType = newGrid[row][col].type;
+
+        if (cellType !== CellType.START && cellType !== CellType.END) {
+          newGrid[row][col].type = CellType.PATH;
+        }
         return newGrid;
       });
 
@@ -121,19 +131,20 @@ const PathFinder = () => {
   };
 
   const visualiseVisited = async (visitedNodes: Cell[]) => {
-    const newGrid = deepCloneGrid(grid);
     for (let i = 0; i < visitedNodes.length; i++) {
       const currNode = visitedNodes[i];
 
-      newGrid[currNode.row][currNode.col] = {
-        ...currNode,
-        type: currNode.type,
-        depth: currNode.depth,
-      };
+      setGrid((prev) => {
+        const newGrid = prev.map((row) => [...row]);
+        newGrid[currNode.row][currNode.col] = {
+          ...currNode,
+          type: currNode.type,
+          depth: currNode.depth,
+        };
+        return newGrid;
+      });
 
-      setGrid(deepCloneGrid(newGrid));
-
-      await wait(15);
+      await wait(100);
     }
   };
 
@@ -182,34 +193,60 @@ const PathFinder = () => {
     setGrid(newGrid);
   };
 
-  const runBFS = async () => {
-    const clearedGrid = clearPath();
+  // useEffect to run algorithm after grid is cleared and rendered
+  useEffect(() => {
+    if (!algorithmToRun || !isGridCleared) return;
 
-    setGrid(clearedGrid);
-    const handleBFS = useBFS({
-      start: startPosition,
-      grid: clearedGrid,
-    });
-    const { found, endCell, visited } = await handleBFS();
-    await visualiseVisited(visited);
-    if (found) {
-      visualisePath(endCell);
-    }
+    const runAlgorithm = async () => {
+      console.log(`Running ${algorithmToRun} algorithm`);
+
+      try {
+        let result;
+
+        switch (algorithmToRun) {
+          case "BFS":
+            const handleBFS = useBFS({
+              start: startPosition,
+              grid: grid,
+            });
+            result = await handleBFS();
+            break;
+          case "DFS":
+            const handleDFS = useDFS({
+              start: startPosition,
+              grid: grid,
+            });
+            result = await handleDFS();
+            break;
+        }
+
+        if (result) {
+          const { found, endCell, visited } = result;
+
+          // TODO: Visited and path are both returned, so they can be handled together.
+          // Perhaps good chance to use useRef to update the grid.
+          await visualiseVisited(visited);
+          if (found) {
+            await visualisePath(endCell);
+          }
+        }
+      } finally {
+        setAlgorithmToRun(null);
+        setIsGridCleared(false);
+      }
+    };
+
+    runAlgorithm();
+  }, [algorithmToRun, isGridCleared]);
+
+  const runBFS = () => {
+    clearPath();
+    setAlgorithmToRun("BFS");
   };
 
-  const runDFS = async () => {
-    const clearedGrid = clearPath();
-
-    setGrid(clearedGrid);
-    const handleDFS = useDFS({
-      start: startPosition,
-      grid: clearedGrid,
-      setGrid,
-    });
-    const { found, endCell } = await handleDFS();
-    if (found) {
-      visualisePath(endCell);
-    }
+  const runDFS = () => {
+    clearPath();
+    setAlgorithmToRun("DFS");
   };
 
   return (
@@ -300,7 +337,7 @@ const PathFinder = () => {
                   case CellType.VISITED:
                     const depth = cell.depth || 0;
                     const lightness = Math.max(60, 99 - depth); // decreases with depth
-                    backgroundColor = `hsl(220, 70%, ${lightness}%)`; // blue hue
+                    backgroundColor = `hsl(220, 70%, ${lightness}%)`;
                     break;
                   case CellType.PATH:
                     backgroundColor = "lightgreen";
@@ -329,8 +366,7 @@ const PathFinder = () => {
                         cell.type === CellType.START ||
                         cell.type === CellType.END
                       ) {
-                        setDraggingType(cell.type); // START or END
-                        // handleMoveSpecialCell(cell);
+                        setDraggingType(cell.type);
                         setIsMouseDown(true);
                         lastDraggedPosition.current = {
                           row: cell.row,
@@ -354,6 +390,7 @@ const PathFinder = () => {
                       }
                     }}
                   />
+                  // >{cell.type}</div>
                 );
               })}
             </div>

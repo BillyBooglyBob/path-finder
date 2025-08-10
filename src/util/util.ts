@@ -7,12 +7,4 @@ export const wait = async (time: number) => {
 export const deepCloneGrid = (grid: Cell[][]): Cell[][] =>
   grid.map((row) => row.map((cell) => ({ ...cell })));
 
-export const finishUpdate = async (
-  grid: Cell[][],
-  setGrid: (grid: Cell[][]) => void,
-  waitTime = 0.01
-) => {
-  const updatedGrid = deepCloneGrid(grid);
-  await wait(waitTime);
-  setGrid(updatedGrid);
-};
+export const getKey = (row: number, col: number) => `${row} ${col}`;
