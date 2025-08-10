@@ -6,9 +6,10 @@ interface DropdownProps {
     name: string;
     action: () => void;
   }[];
+  disabled: boolean;
 }
 
-const Dropdown = ({ title, buttons }: DropdownProps) => {
+const Dropdown = ({ title, buttons, disabled }: DropdownProps) => {
   const [showDropdown, setShowDropdown] = useState(false);
 
   return (
@@ -43,6 +44,7 @@ const Dropdown = ({ title, buttons }: DropdownProps) => {
           {buttons.map((button, index) => (
             <button
               key={index}
+              disabled={disabled}
               onClick={button.action}
               style={{
                 width: "100%",

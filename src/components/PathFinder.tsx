@@ -3,7 +3,7 @@ import { CellType, type Cell } from "../util/types";
 import Dropdown from "./Dropdown";
 import useBFS from "../algorithms/useBFS";
 import useDFS from "../algorithms/useDFS";
-import { deepCloneGrid, wait } from "../util/util";
+import { wait } from "../util/util";
 import "./PathFinder.css";
 
 const GRID_ROWS = 30;
@@ -29,8 +29,8 @@ const PathFinder = () => {
   const [algorithmToRun, setAlgorithmToRun] = useState<"BFS" | "DFS" | null>(
     null
   );
-  const [isGridCleared, setIsGridCleared] = useState(false);
   const cellsRef = useRef<(HTMLDivElement | null)[][]>([]);
+  const [traversing, setTraversing] = useState(false);
 
   useEffect(() => {
     cellsRef.current = Array.from({ length: GRID_ROWS }, () =>
@@ -51,12 +51,6 @@ const PathFinder = () => {
   }, []);
 
   // TODO:
-  // - Cell visits not as smooth anymore, how to improve it? Was smooth because
-  //   async nature
-  //    - Update with useRef hook. So grid displayed is a separate ref. We update
-  //      the ref. Whenever we run an algorithm, it is on the ref.
-  //    - Original grid remains within the state. You can modify the walls, start,
-  //      end, weighted walls. Actual visit, path are not created here.
   // - Disable buttons once finished solving, or reset the grid?
   //   - Problem is once solved, can solve again, which is covered by prev solve
   //   - Once solves and click solved again, 1st reset the grid, remove all visited
@@ -245,59 +239,6 @@ const PathFinder = () => {
     setGrid(newGrid);
   };
 
-  const clearPath = () => {
-    clearAnimationFromDOM();
-    setIsGridCleared(true);
-    // const clearedGrid = grid.map((r) =>
-    //   r.map((cell) => ({
-    //     ...cell,
-    //     type:
-    //       cell.type === CellType.VISITED || cell.type === CellType.PATH
-    //         ? CellType.EMPTY
-    //         : cell.type,
-    //     depth: 0,
-    //   }))
-    // );
-
-    // clearedGrid[startPosition.row][startPosition.col].type = CellType.START;
-    // clearedGrid[endPosition.row][endPosition.col].type = CellType.END;
-
-    // setGrid(clearedGrid);
-    // setIsGridCleared(true);
-  };
-
-  const visualisePath = async (endCell?: Cell) => {
-    if (!endCell) return;
-    const path: { row: number; col: number }[] = [];
-
-    let currCell: Cell | undefined = endCell;
-    while (currCell) {
-      path.push({ row: currCell.row, col: currCell.col });
-      currCell = currCell.parent;
-    }
-
-    path.reverse();
-
-    let updates = 0;
-    for (const cell of path) {
-      updates++;
-      setGrid((prev) => {
-        const newGrid = deepCloneGrid(prev);
-        const { row, col } = cell;
-        const cellType = newGrid[row][col].type;
-
-        if (cellType !== CellType.START && cellType !== CellType.END) {
-          newGrid[row][col].type = CellType.PATH;
-        }
-        return newGrid;
-      });
-
-      if (updates % 3 === 0) {
-        await wait(50); // smooth animation
-      }
-    }
-  };
-
   const visualisePathDom = async (endCell?: Cell) => {
     if (!endCell) return;
 
@@ -312,11 +253,23 @@ const PathFinder = () => {
     path.reverse();
 
     for (let i = 0; i < path.length; i++) {
-      const { row, col } = path[i];
+      const { row, col, type } = path[i];
       const domElement = cellsRef.current[row][col];
 
       if (domElement) {
-        domElement.style.backgroundColor = "yellow";
+        let backgroundColor;
+
+        switch (type) {
+          case CellType.START:
+            backgroundColor = "green";
+            break;
+          case CellType.END:
+            backgroundColor = "red";
+            break;
+          default:
+            backgroundColor = "yellow";
+        }
+        domElement.style.backgroundColor = backgroundColor;
         domElement.className = "cell path";
       }
 
@@ -326,33 +279,29 @@ const PathFinder = () => {
     }
   };
 
-  const visualiseVisited = async (visitedNodes: Cell[]) => {
-    for (let i = 0; i < visitedNodes.length; i++) {
-      const currNode = visitedNodes[i];
-
-      setGrid((prev) => {
-        const newGrid = prev.map((row) => [...row]);
-        newGrid[currNode.row][currNode.col] = {
-          ...currNode,
-          type: currNode.type,
-          depth: currNode.depth,
-        };
-        return newGrid;
-      });
-
-      await wait(100);
-    }
-  };
-
   const visualiseVisitedDom = async (visitedNodes: Cell[]) => {
     for (let i = 0; i < visitedNodes.length; i++) {
-      const { row, col, depth } = visitedNodes[i];
+      const { row, col, type, depth } = visitedNodes[i];
       const domElement = cellsRef.current[row][col];
 
       if (domElement) {
-        const lightness = Math.max(60, 99 - (depth ? depth : 0));
-        domElement.style.backgroundColor = `hsl(220, 70%, ${lightness}%)`;
-        domElement.className = "cell visited";
+        let backgroundColor;
+        let className = "cell visited";
+
+        switch (type) {
+          case CellType.START:
+            backgroundColor = "green";
+            break;
+          case CellType.END:
+            backgroundColor = "red";
+            className = "cell found";
+            break;
+          default:
+            const lightness = Math.max(60, 99 - (depth ? depth : 0));
+            backgroundColor = `hsl(220, 70%, ${lightness}%)`;
+        }
+        domElement.style.backgroundColor = backgroundColor;
+        domElement.className = className;
       }
 
       if (i % 5 === 0) {
@@ -361,12 +310,13 @@ const PathFinder = () => {
     }
   };
 
-  // useEffect to run algorithm after grid is cleared and rendered
   useEffect(() => {
-    if (!algorithmToRun || !isGridCleared) return;
+    if (!algorithmToRun) return;
 
     const runAlgorithm = async () => {
       console.log(`Running ${algorithmToRun} algorithm`);
+      setTraversing(true);
+      clearAnimationFromDOM();
 
       try {
         let result;
@@ -392,25 +342,24 @@ const PathFinder = () => {
           const { found, endCell, visited } = result;
           await visualiseVisitedDom(visited);
           if (found) {
+            await wait(300); // Wait for the visited animation to finish before showing the path
             await visualisePathDom(endCell);
           }
         }
       } finally {
         setAlgorithmToRun(null);
-        setIsGridCleared(false);
+        setTraversing(false);
       }
     };
 
     runAlgorithm();
-  }, [algorithmToRun, isGridCleared]);
+  }, [algorithmToRun]);
 
   const runBFS = () => {
-    clearPath();
     setAlgorithmToRun("BFS");
   };
 
   const runDFS = () => {
-    clearPath();
     setAlgorithmToRun("DFS");
   };
 
@@ -434,6 +383,7 @@ const PathFinder = () => {
       >
         <Dropdown
           title="Algorithms"
+          disabled={traversing}
           buttons={[
             {
               name: "Breadth First Search",
@@ -450,10 +400,13 @@ const PathFinder = () => {
           ]}
         />
         <div>
-          <button onClick={resetGrid}>Clear</button>
+          <button disabled={traversing} onClick={resetGrid}>
+            Clear
+          </button>
         </div>
         <Dropdown
           title="Generate maze"
+          disabled={traversing}
           buttons={[
             {
               name: "Big maze",
@@ -480,44 +433,31 @@ const PathFinder = () => {
           onMouseUp={() => setIsMouseDown(false)}
           onMouseLeave={() => setIsMouseDown(false)}
         >
-          {/* {gridRef.current.map((row, rowIdx) => ( */}
           {grid.map((row, rowIdx) => (
             <div key={rowIdx} style={{ display: "flex" }}>
               {row.map((cell, cellIdx) => {
                 let backgroundColor;
+                let cellClass;
 
                 switch (cell.type) {
                   case CellType.EMPTY:
                     backgroundColor = "white";
+                    cellClass = "cell";
                     break;
                   case CellType.WALL:
                     backgroundColor = "black";
+                    cellClass = "cell wall";
                     break;
                   case CellType.START:
                     backgroundColor = "green";
+                    cellClass = "cell";
                     break;
                   case CellType.END:
                     backgroundColor = "red";
-                    break;
-                  // case CellType.VISITED:
-                  //   const depth = cell.depth || 0;
-                  //   const lightness = Math.max(60, 99 - depth); // decreases with depth
-                  //   backgroundColor = `hsl(220, 70%, ${lightness}%)`;
-                  //   break;
-                  // case CellType.PATH:
-                  //   backgroundColor = "lightgreen";
-                  //   break;
-                }
-
-                let cellClass: string;
-                switch (cell.type) {
-                  // case CellType.VISITED:
-                  //   cellClass = "cell visited";
-                  //   break;
-                  case CellType.WALL:
-                    cellClass = "cell wall";
+                    cellClass = "cell";
                     break;
                   default:
+                    backgroundColor = "white";
                     cellClass = "cell";
                 }
 

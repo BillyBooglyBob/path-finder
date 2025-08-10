@@ -26,9 +26,17 @@ const useDFS = ({ start, grid }: PathfindingInput) => {
       const depth = currCell.depth;
       const cellType = newGrid[row][col].type;
       if (cellType === CellType.END) {
-        return { found: true, endCell: currCell, visited: visitedNodes };
+        const endCell = { ...currCell, type: CellType.END };
+        return { found: true, endCell, visited: visitedNodes };
       }
       if (cellType === CellType.WALL) continue;
+
+      visited.add(getKey(row, col));
+      visitedNodes.push({
+        ...newGrid[row][col],
+        type: cellType === CellType.EMPTY ? CellType.VISITED : cellType,
+        depth: depth,
+      });
 
       for (const [rowChange, colChange] of DIRECTIONS) {
         const newRow = row + rowChange;
@@ -43,8 +51,6 @@ const useDFS = ({ start, grid }: PathfindingInput) => {
           continue;
 
         const newDepth = (depth ?? 0) + 1;
-        const newType = newGrid[newRow][newCol].type;
-
         const key = getKey(newRow, newCol);
         if (!visited.has(key)) {
           stack.push({
@@ -54,12 +60,7 @@ const useDFS = ({ start, grid }: PathfindingInput) => {
             depth: newDepth,
             parent: { ...currCell },
           });
-          visited.add(key);
-          visitedNodes.push({
-            ...newGrid[newRow][newCol],
-            type: newType === CellType.EMPTY ? CellType.VISITED : newType,
-            depth: newDepth,
-          });
+          // visited.add(key);
         }
       }
     }

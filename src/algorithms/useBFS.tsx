@@ -26,9 +26,20 @@ const useBFS = ({ start, grid }: PathfindingInput) => {
       const depth = currCell.depth;
       const cellType = newGrid[row][col].type;
       if (cellType === CellType.END) {
-        return { found: true, endCell: currCell, visited: visitedNodes };
+        const endCell = { ...currCell, type: CellType.END };
+        return {
+          found: true,
+          endCell,
+          visited: visitedNodes,
+        };
       }
       if (cellType === CellType.WALL) continue;
+
+      visitedNodes.push({
+        ...newGrid[row][col],
+        type: cellType === CellType.EMPTY ? CellType.VISITED : cellType,
+        depth: depth,
+      });
 
       for (const [rowChange, colChange] of DIRECTIONS) {
         const newRow = row + rowChange;
@@ -55,11 +66,11 @@ const useBFS = ({ start, grid }: PathfindingInput) => {
             parent: { ...currCell },
           });
           visited.add(key);
-          visitedNodes.push({
-            ...newGrid[newRow][newCol],
-            type: newType === CellType.EMPTY ? CellType.VISITED : newType,
-            depth: newDepth,
-          });
+          // visitedNodes.push({
+          //   ...newGrid[newRow][newCol],
+          //   type: newType === CellType.EMPTY ? CellType.VISITED : newType,
+          //   depth: newDepth,
+          // });
         }
       }
     }
