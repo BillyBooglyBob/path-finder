@@ -5,17 +5,18 @@ import useBFS from "../algorithms/useBFS";
 import useDFS from "../algorithms/useDFS";
 import { wait } from "../util/util";
 import "./PathFinder.css";
+import { ColorType } from "../util/constant";
 
-const GRID_ROWS = 29;
-const GRID_COLS = 70;
+const GRID_ROWS = 25;
+const GRID_COLS = 61;
 const DEFAULT_START_POSITION: Cell = {
   type: CellType.START,
-  row: 15,
-  col: 30,
+  row: 12,
+  col: 20,
 };
 const DEFAULT_END_POSITION: Cell = {
   type: CellType.END,
-  row: 15,
+  row: 12,
   col: 40,
 };
 
@@ -86,23 +87,23 @@ const PathFinder = () => {
 
         switch (cell.type) {
           case CellType.EMPTY:
-            backgroundColor = "white";
+            backgroundColor = ColorType[CellType.EMPTY];
             className = "cell";
             break;
           case CellType.WALL:
-            backgroundColor = "black";
+            backgroundColor = ColorType[CellType.WALL];
             className = "cell wall";
             break;
           case CellType.START:
-            backgroundColor = "green";
+            backgroundColor = ColorType[CellType.START];
             className = "cell";
             break;
           case CellType.END:
-            backgroundColor = "red";
+            backgroundColor = ColorType[CellType.END];
             className = "cell";
             break;
           default:
-            backgroundColor = "white";
+            backgroundColor = ColorType[CellType.EMPTY];
             className = "cell";
         }
 
@@ -128,7 +129,7 @@ const PathFinder = () => {
           const cell = grid[row][col];
           switch (cell.type) {
             case CellType.EMPTY:
-              domElement.style.backgroundColor = "white";
+              domElement.style.backgroundColor = ColorType[CellType.EMPTY];
               domElement.className = "cell";
               break;
             case CellType.WALL:
@@ -136,11 +137,11 @@ const PathFinder = () => {
               domElement.className = "cell wall";
               break;
             case CellType.START:
-              domElement.style.backgroundColor = "green";
+              domElement.style.backgroundColor = ColorType[CellType.START];
               domElement.className = "cell";
               break;
             case CellType.END:
-              domElement.style.backgroundColor = "red";
+              domElement.style.backgroundColor = ColorType[CellType.END];
               domElement.className = "cell";
               break;
           }
@@ -167,7 +168,7 @@ const PathFinder = () => {
         domElement.style.backgroundColor = "black";
         domElement.className = "cell wall";
       } else {
-        domElement.style.backgroundColor = "white";
+        domElement.style.backgroundColor = ColorType[CellType.EMPTY];
         domElement.className = "cell";
       }
     }
@@ -193,7 +194,7 @@ const PathFinder = () => {
       // Update DOM for old position
       const oldElement = cellsRef.current[prevRow][prevCol];
       if (oldElement) {
-        oldElement.style.backgroundColor = "white";
+        oldElement.style.backgroundColor = ColorType[CellType.EMPTY];
         oldElement.className = "cell";
       }
     }
@@ -213,11 +214,11 @@ const PathFinder = () => {
     const newElement = cellsRef.current[row][col];
     if (newElement) {
       if (draggingType === CellType.START) {
-        newElement.style.backgroundColor = "green";
+        newElement.style.backgroundColor = ColorType[CellType.START];
         newElement.className = "cell";
         setStartPosition((prev) => ({ ...prev, row, col }));
       } else if (draggingType === CellType.END) {
-        newElement.style.backgroundColor = "red";
+        newElement.style.backgroundColor = ColorType[CellType.END];
         newElement.className = "cell";
         // setEndPosition((prev) => ({ ...prev, row, col }));
       }
@@ -248,13 +249,13 @@ const PathFinder = () => {
 
         switch (type) {
           case CellType.START:
-            backgroundColor = "green";
+            backgroundColor = ColorType[CellType.START];
             break;
           case CellType.END:
-            backgroundColor = "red";
+            backgroundColor = ColorType[CellType.END];
             break;
           default:
-            backgroundColor = "yellow";
+            backgroundColor = ColorType[CellType.PATH];
         }
         domElement.style.backgroundColor = backgroundColor;
         domElement.className = "cell path";
@@ -277,10 +278,10 @@ const PathFinder = () => {
 
         switch (type) {
           case CellType.START:
-            backgroundColor = "green";
+            backgroundColor = ColorType[CellType.START];
             break;
           case CellType.END:
-            backgroundColor = "red";
+            backgroundColor = ColorType[CellType.END];
             className = "cell found";
             break;
           default:
@@ -382,23 +383,38 @@ const PathFinder = () => {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <div className="cell" style={{ backgroundColor: "black" }} />
+            <div
+              className="cell"
+              style={{ backgroundColor: ColorType[CellType.WALL] }}
+            />
             <p>Wall</p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <div className="cell" style={{ backgroundColor: "green" }} />
+            <div
+              className="cell"
+              style={{ backgroundColor: ColorType[CellType.START] }}
+            />
             <p>Start</p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <div className="cell" style={{ backgroundColor: "red" }} />
+            <div
+              className="cell"
+              style={{ backgroundColor: ColorType[CellType.END] }}
+            />
             <p>End</p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <div className="cell" style={{ backgroundColor: "lightskyblue" }} />
+            <div
+              className="cell"
+              style={{ backgroundColor: ColorType[CellType.VISITED] }}
+            />
             <p>Visited</p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <div className="cell" style={{ backgroundColor: "yellow" }} />
+            <div
+              className="cell"
+              style={{ backgroundColor: ColorType[CellType.PATH] }}
+            />
             <p>Path</p>
           </div>
         </div>
@@ -464,9 +480,6 @@ const PathFinder = () => {
           onMouseDown={() => setIsMouseDown(true)}
           onMouseUp={() => setIsMouseDown(false)}
           onMouseLeave={() => setIsMouseDown(false)}
-          style={{
-            padding: "0.3rem",
-          }}
         >
           {grid.map((row, rowIdx) => (
             <div key={rowIdx} style={{ display: "flex" }}>
@@ -476,7 +489,7 @@ const PathFinder = () => {
 
                 switch (cell.type) {
                   case CellType.EMPTY:
-                    backgroundColor = "white";
+                    backgroundColor = ColorType[CellType.EMPTY];
                     cellClass = "cell";
                     break;
                   case CellType.WALL:
@@ -484,15 +497,15 @@ const PathFinder = () => {
                     cellClass = "cell wall";
                     break;
                   case CellType.START:
-                    backgroundColor = "green";
+                    backgroundColor = ColorType[CellType.START];
                     cellClass = "cell";
                     break;
                   case CellType.END:
-                    backgroundColor = "red";
+                    backgroundColor = ColorType[CellType.END];
                     cellClass = "cell";
                     break;
                   default:
-                    backgroundColor = "white";
+                    backgroundColor = ColorType[CellType.EMPTY];
                     cellClass = "cell";
                 }
 
