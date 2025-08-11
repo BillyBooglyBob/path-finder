@@ -6,18 +6,26 @@ interface DropdownProps {
     name: string;
     action: () => void;
   }[];
-  disabled: boolean;
+  disabled?: boolean;
 }
 
 const Dropdown = ({ title, buttons, disabled }: DropdownProps) => {
   const [showDropdown, setShowDropdown] = useState(false);
+
+  const handleClick = (action: () => void) => {
+    action();
+    setShowDropdown(false);
+  };
 
   return (
     <div
       onMouseLeave={() => setShowDropdown(false)}
       style={{ position: "relative", display: "inline-block" }}
     >
-      <div onMouseEnter={() => setShowDropdown(true)} className="button">
+      <div
+        onMouseEnter={() => setShowDropdown(true)}
+        className={`button${disabled ? " disabled" : ""}`}
+      >
         {title} ▼
       </div>
       {showDropdown && (
@@ -37,7 +45,7 @@ const Dropdown = ({ title, buttons, disabled }: DropdownProps) => {
             <button
               key={index}
               disabled={disabled}
-              onClick={button.action}
+              onClick={() => handleClick(button.action)}
               style={{
                 width: "100%",
                 border: "none",

@@ -5,7 +5,7 @@ import useBFS from "../algorithms/useBFS";
 import useDFS from "../algorithms/useDFS";
 import { wait } from "../util/util";
 import "./PathFinder.css";
-import { ColorType } from "../util/constant";
+import { ColorType, SPEED } from "../util/constant";
 
 const GRID_ROWS = 24;
 const GRID_COLS = 59;
@@ -32,6 +32,7 @@ const PathFinder = () => {
   );
   const cellsRef = useRef<(HTMLDivElement | null)[][]>([]);
   const [traversing, setTraversing] = useState(false);
+  const speedRef = useRef(SPEED.medium);
 
   useEffect(() => {
     cellsRef.current = Array.from({ length: GRID_ROWS }, () =>
@@ -133,7 +134,7 @@ const PathFinder = () => {
               domElement.className = "cell";
               break;
             case CellType.WALL:
-              domElement.style.backgroundColor = "black";
+              domElement.style.backgroundColor = ColorType[CellType.WALL];
               domElement.className = "cell wall";
               break;
             case CellType.START:
@@ -165,7 +166,7 @@ const PathFinder = () => {
     const domElement = cellsRef.current[row][col];
     if (domElement) {
       if (newType === CellType.WALL) {
-        domElement.style.backgroundColor = "black";
+        domElement.style.backgroundColor = ColorType[CellType.WALL];
         domElement.className = "cell wall";
       } else {
         domElement.style.backgroundColor = ColorType[CellType.EMPTY];
@@ -296,7 +297,7 @@ const PathFinder = () => {
       }
 
       if (i % 5 === 0) {
-        await wait(10);
+        await wait(speedRef.current);
       }
     }
   };
@@ -354,19 +355,24 @@ const PathFinder = () => {
     setAlgorithmToRun("DFS");
   };
 
+  const handleSpeedChange = (speed: (typeof SPEED)[keyof typeof SPEED]) => {
+    speedRef.current = speed;
+  };
+
   return (
     <div
       style={{
         display: "flex",
         flexDirection: "column",
         height: "100dvh",
+        backgroundColor: "#1f223d",
+        color: "white",
       }}
     >
       <header
         style={{
           display: "flex",
           flex: "1",
-          backgroundColor: "lightgoldenrodyellow",
           justifyContent: "space-between",
           alignItems: "center",
           padding: "0px 20px",
@@ -376,10 +382,8 @@ const PathFinder = () => {
         <h1 className="title">Path Finder</h1>
         <div
           style={{
-            display: "grid",
-            gridTemplateRows: "repeat(2, auto)",
-            gridTemplateColumns: "repeat(3, auto)",
-            gap: "8px 20px",
+            display: "flex",
+            gap: "20px",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -419,6 +423,23 @@ const PathFinder = () => {
           </div>
         </div>
         <div style={{ display: "flex", gap: "1rem" }}>
+          <Dropdown
+            title="Speed"
+            buttons={[
+              {
+                name: "Slow",
+                action: () => handleSpeedChange(SPEED.slow),
+              },
+              {
+                name: "Medium",
+                action: () => handleSpeedChange(SPEED.medium),
+              },
+              {
+                name: "Fast",
+                action: () => handleSpeedChange(SPEED.fast),
+              },
+            ]}
+          />
           <Dropdown
             title="Algorithms"
             disabled={traversing}
@@ -480,7 +501,12 @@ const PathFinder = () => {
           onMouseDown={() => setIsMouseDown(true)}
           onMouseUp={() => setIsMouseDown(false)}
           onMouseLeave={() => setIsMouseDown(false)}
-          style={{ display: "flex", flexDirection: "column", gap: "1px" }}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "1px",
+            backgroundColor: "white",
+          }}
         >
           {grid.map((row, rowIdx) => (
             <div key={rowIdx} style={{ display: "flex", gap: "1px" }}>
@@ -494,7 +520,7 @@ const PathFinder = () => {
                     cellClass = "cell";
                     break;
                   case CellType.WALL:
-                    backgroundColor = "#545772";
+                    backgroundColor = ColorType[CellType.WALL];
                     cellClass = "cell wall";
                     break;
                   case CellType.START:
