@@ -6,8 +6,9 @@ import useDFS from "../algorithms/useDFS";
 import { wait } from "../util/util";
 import "./PathFinder.css";
 import { ColorType, SPEED } from "../util/constant";
+import { createMaze } from "../algorithms/randomisedDfsMazeGeneration";
 
-const GRID_ROWS = 24;
+const GRID_ROWS = 23;
 const GRID_COLS = 59;
 const DEFAULT_START_POSITION: Cell = {
   type: CellType.START,
@@ -23,7 +24,7 @@ const DEFAULT_END_POSITION: Cell = {
 const PathFinder = () => {
   const [grid, setGrid] = useState<Cell[][]>([]);
   const [startPosition, setStartPosition] = useState(DEFAULT_START_POSITION);
-  // const [endPosition, setEndPosition] = useState(DEFAULT_END_POSITION);
+  const [endPosition, setEndPosition] = useState(DEFAULT_END_POSITION);
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [draggingType, setDraggingType] = useState<CellType | null>(null); // START, END, or null
   const lastDraggedPosition = useRef<{ row: number; col: number } | null>(null);
@@ -67,6 +68,7 @@ const PathFinder = () => {
       CellType.END;
 
     setGrid(newGrid);
+    console.log("Initial grid:", newGrid);
     syncDOMWithReactState(newGrid);
   };
 
@@ -208,7 +210,7 @@ const PathFinder = () => {
     if (draggingType === CellType.START) {
       setStartPosition((prev) => ({ ...prev, row, col }));
     } else if (draggingType === CellType.END) {
-      // setEndPosition((prev) => ({ ...prev, row, col }));
+      setEndPosition((prev) => ({ ...prev, row, col }));
     }
 
     // Update DOM for new position
@@ -221,7 +223,7 @@ const PathFinder = () => {
       } else if (draggingType === CellType.END) {
         newElement.style.backgroundColor = ColorType[CellType.END];
         newElement.className = "cell";
-        // setEndPosition((prev) => ({ ...prev, row, col }));
+        setEndPosition((prev) => ({ ...prev, row, col }));
       }
     }
 
@@ -359,6 +361,16 @@ const PathFinder = () => {
     speedRef.current = speed;
   };
 
+  const handlerandomisedDfsMazeGeneration = () => {
+    const { grid } = createMaze(GRID_ROWS, GRID_COLS, {
+      start: { row: startPosition.row, col: startPosition.col },
+      end: { row: endPosition.row, col: endPosition.col },
+    });
+
+    setGrid(grid);
+    syncDOMWithReactState(grid);
+  };
+
   return (
     <div
       style={{
@@ -458,24 +470,20 @@ const PathFinder = () => {
               // },
             ]}
           />
-          {/* 
-          
           <Dropdown
             title="Generate maze"
             disabled={traversing}
             buttons={[
               {
-                name: "Big maze",
-                action: () => console.log("Generating big maze"),
+                name: "Recursive maze",
+                action: handlerandomisedDfsMazeGeneration,
               },
-              {
-                name: "Big curve",
-                action: () => console.log("Generating big curve"),
-              },
+              // {
+              //   name: "Big curve",
+              //   action: () => console.log("Generating big curve"),
+              // },
             ]}
           />
-          
-          */}
           <button className="button" disabled={traversing} onClick={resetGrid}>
             Reset Grid
           </button>
