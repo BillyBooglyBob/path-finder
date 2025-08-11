@@ -29,7 +29,7 @@
   width: 25px;
   height: 25px;
   background-color: #eaedf3;
-  border: 0.5px solid white;
+  /* border: 0.5px solid white; */
   margin: 0;
   box-sizing: border-box;
 }
@@ -70,7 +70,7 @@
     background-color: hsl(66, 71%, 84%);
   }
   100% {
-    transform: scale(1);
+    transform: scale(0.95);
     border-radius: 0%;
   }
 }

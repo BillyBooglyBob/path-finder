@@ -7,8 +7,8 @@ import { wait } from "../util/util";
 import "./PathFinder.css";
 import { ColorType } from "../util/constant";
 
-const GRID_ROWS = 25;
-const GRID_COLS = 61;
+const GRID_ROWS = 24;
+const GRID_COLS = 59;
 const DEFAULT_START_POSITION: Cell = {
   type: CellType.START,
   row: 12,
@@ -480,9 +480,10 @@ const PathFinder = () => {
           onMouseDown={() => setIsMouseDown(true)}
           onMouseUp={() => setIsMouseDown(false)}
           onMouseLeave={() => setIsMouseDown(false)}
+          style={{ display: "flex", flexDirection: "column", gap: "1px" }}
         >
           {grid.map((row, rowIdx) => (
-            <div key={rowIdx} style={{ display: "flex" }}>
+            <div key={rowIdx} style={{ display: "flex", gap: "1px" }}>
               {row.map((cell, cellIdx) => {
                 let backgroundColor;
                 let cellClass;
