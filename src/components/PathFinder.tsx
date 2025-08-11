@@ -50,12 +50,6 @@ const PathFinder = () => {
     };
   }, []);
 
-  // TODO:
-  // - Add Dijkstra
-  //   - Need weights
-  // - Add recompute visited & path on start/end move, no need for animation
-  // - Add move start/end over other cells and not replace it
-
   const resetGrid = () => {
     const newGrid: Cell[][] = Array.from({ length: GRID_ROWS }, (_, row) =>
       Array.from({ length: GRID_COLS }, (_, col) => ({
@@ -486,7 +480,7 @@ const PathFinder = () => {
                     cellClass = "cell";
                     break;
                   case CellType.WALL:
-                    backgroundColor = "black";
+                    backgroundColor = "#545772";
                     cellClass = "cell wall";
                     break;
                   case CellType.START:

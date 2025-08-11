@@ -31,11 +31,15 @@ const useDFS = ({ start, grid }: PathfindingInput) => {
       }
       if (cellType === CellType.WALL) continue;
 
-      visitedNodes.push({
-        ...newGrid[row][col],
-        type: cellType === CellType.EMPTY ? CellType.VISITED : cellType,
-        depth: depth,
-      });
+      const key = getKey(row, col);
+      if (!visited.has(key)) {
+        visitedNodes.push({
+          ...newGrid[row][col],
+          type: cellType === CellType.EMPTY ? CellType.VISITED : cellType,
+          depth: depth,
+        });
+        visited.add(getKey(row, col));
+      }
 
       for (const [rowChange, colChange] of DIRECTIONS) {
         const newRow = row + rowChange;
@@ -59,7 +63,7 @@ const useDFS = ({ start, grid }: PathfindingInput) => {
             depth: newDepth,
             parent: { ...currCell },
           });
-          visited.add(key);
+          // visited.add(key);
         }
       }
     }

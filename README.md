@@ -94,9 +94,39 @@
     - Batch updating
     - Update DOM directly with useRef (fastest)
 
-
 - Handle both drag and paint (wall/eraser) and drag and move (start/end)
+
   - Use separate handler for each cell
   - Set a global eventlListener to handle cases where the mouse exits the grid
   - When drag and move, keep track of which cell we're moving and the last cell visited
     to clear the last cell and prevent painting
+
+- Should we add weighted traversal?
+
+  - Add a filter for weighted nodes (only addable via )
+
+- Add random maze generation
+  - Algorithm given grid size, start and end, generates & returns a solvable maze
+  - Visualiser to visualise the returned maze one by one (from top to bottom, from outside to in, e.g.)
+    - Update via DOM manipulation
+    - Then update the grid state once at the end, so keep track of the grid during DOM manipulation
+
+TODO:
+
+- Much better UI
+  - Rounded edges for grid
+  - Changeable speed (add as sleek dropdown)
+  - Colour
+    - Gray walls
+    - Lighter toned start/end
+  - Wall animation
+    - Bigger scaling
+    - Scale from big to normal
+  - Cleaner UI panel
+  - Separate select algorithm and run
+  - Info bar with short description of each algorithm
+- Add Dijkstra
+  - Select between wall and weight nodes (Easy select, two options both visible) (have hoverable tooltip)
+  - Should weights be random and displayable?
+- Add recompute visited & path on start/end move, no need for animation
+- Add move start/end over other cells and not replace it
