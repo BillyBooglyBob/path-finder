@@ -91,6 +91,7 @@ const PathFinder = () => {
     if (algorithmToRun === "dijkstra" || !grid || grid.length === 0) return;
 
     clearWeightNodes();
+    setPaintingType(CellType.WALL);
   }, [algorithmToRun]);
 
   const syncDOMWithReactState = (grid: Cell[][]) => {
@@ -183,21 +184,12 @@ const PathFinder = () => {
     setGrid(newGrid);
   };
 
-  // TODO:
-  // - When visiting weighted node, just color background. Keep the cell normal.
-  // - When clearing path, reset all the weighted nodes (colour back to normal, not remain as visited or path).
-  // - When replacing wall with weight, the colour gets reset to none (fix it)
-
   const handlePaintCell = (cell: Cell) => {
     const { row, col, type } = cell;
 
     if (type === CellType.START || type === CellType.END) return;
 
-    const newType =
-      type === CellType.WALL || type === CellType.WEIGHTED
-        ? CellType.EMPTY
-        : paintingType;
-
+    const newType = type === paintingType ? CellType.EMPTY : paintingType;
     const newGrid = grid.map((r) => [...r]);
     newGrid[row][col] = {
       ...newGrid[row][col],
@@ -389,8 +381,8 @@ const PathFinder = () => {
       end: { row: endPosition.row, col: endPosition.col },
     });
 
-    for (let i = 0; i <= grid.length; i++) {
-      for (let j = 0; j <= grid[0].length; j++) {
+    for (let i = 0; i < grid.length; i++) {
+      for (let j = 0; j < grid[0].length; j++) {
         grid[i][j].weight = WEIGHTS.NORMAL;
       }
     }
@@ -626,7 +618,6 @@ const PathFinder = () => {
                         handlePaintCell(cell);
                       }
                     }}
-                    // />
                   >
                     <div
                       className={

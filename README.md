@@ -142,6 +142,3 @@ TODO:
 - Add move start/end over other cells and not replace it
 
 - Add wall switched to weight or vice versa, the color needs to change
-- Disbale weights when BFS or DFS enabled (just disable the ability to swap)
-- When switch from Dijkstra to BFS or DFS, clear all weight nodes from graph
-  - Simple scan through the grid and one setGrid

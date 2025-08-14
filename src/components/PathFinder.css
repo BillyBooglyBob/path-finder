@@ -64,6 +64,7 @@
   border-radius: 100%;
   scale: 0.8;
   background-color: #c700a3ff;
+  border: none;
 }
 
 .cell.visited {
