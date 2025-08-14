@@ -106,10 +106,15 @@
   - Add a filter for weighted nodes (only addable via )
 
 - Add random maze generation
+
   - Algorithm given grid size, start and end, generates & returns a solvable maze
   - Visualiser to visualise the returned maze one by one (from top to bottom, from outside to in, e.g.)
     - Update via DOM manipulation
     - Then update the grid state once at the end, so keep track of the grid during DOM manipulation
+
+- After adding weighted nodes, when visiting them, should keep the weight cell visible but current
+  implementation wipes it with just the visited colour.
+  - Did this by adding an additional div inside the cell, which renders the weight node.
 
 TODO:
 
@@ -129,13 +134,14 @@ TODO:
   - Add new weighted cell type
   - BFS & DFS don't enable weighted cell (no weighted cell in grid, need to reset it if other wise)
     - Clear weighted cell function (replace weighted cell with empty)
-  - A* and Dijkstra enable add weighted cell (give all cells default 0 weight, weighted cell have 1)
+  - A\* and Dijkstra enable add weighted cell (give all cells default 0 weight, weighted cell have 1)
   - Initialise grid (no matter the algorithm, just give default 0 weight by default. Easy to handle)
   - Select between wall and weight nodes (Easy select, two options both visible) (have hoverable tooltip)
   - Should weights be random and displayable?
 - Add recompute visited & path on start/end move, no need for animation
 - Add move start/end over other cells and not replace it
 
-
-- After adding weighted nodes, when visiting them, should keep the weight cell visible but current
-implementation wipes it with just the visited colour.
+- Add wall switched to weight or vice versa, the color needs to change
+- Disbale weights when BFS or DFS enabled (just disable the ability to swap)
+- When switch from Dijkstra to BFS or DFS, clear all weight nodes from graph
+  - Simple scan through the grid and one setGrid

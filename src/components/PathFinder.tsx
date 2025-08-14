@@ -39,6 +39,7 @@ const PathFinder = () => {
   const speedRef = useRef(SPEED.medium);
   // WALL, WEIGHTED, or null
   const [paintingType, setPaintingType] = useState<CellType>(CellType.WALL);
+  const hasMountedRef = useRef(false);
 
   useEffect(() => {
     cellsRef.current = Array.from({ length: GRID_ROWS }, () =>
@@ -80,6 +81,17 @@ const PathFinder = () => {
   useEffect(() => {
     resetGrid();
   }, []);
+
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+
+    if (algorithmToRun === "dijkstra" || !grid || grid.length === 0) return;
+
+    clearWeightNodes();
+  }, [algorithmToRun]);
 
   const syncDOMWithReactState = (grid: Cell[][]) => {
     for (let row = 0; row < GRID_ROWS; row++) {
@@ -158,6 +170,17 @@ const PathFinder = () => {
         }
       }
     }
+  };
+
+  const clearWeightNodes = () => {
+    const newGrid = grid.map((r) =>
+      r.map((cell) => ({
+        ...cell,
+        type: cell.type === CellType.WEIGHTED ? CellType.EMPTY : cell.type,
+      }))
+    );
+
+    setGrid(newGrid);
   };
 
   // TODO:
@@ -427,8 +450,9 @@ const PathFinder = () => {
             </Tooltip>
             <Tooltip content="Weight">
               <button
-                className="tooltip-button"
                 onClick={() => setPaintingType(CellType.WEIGHTED)}
+                disabled={algorithmToRun === "bfs" || algorithmToRun === "dfs"}
+                className="tooltip-button"
                 style={{
                   filter: `${
                     paintingType === CellType.WEIGHTED
