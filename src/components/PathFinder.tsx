@@ -166,27 +166,16 @@ const PathFinder = () => {
         ? CellType.EMPTY
         : paintingType;
 
+    console.log(`Current type: ${newType}`);
+
     const newGrid = grid.map((r) => [...r]);
     newGrid[row][col] = {
       ...newGrid[row][col],
       weight: paintingType === CellType.WEIGHTED ? 1 : 0,
+      type: newType,
     };
-    setGrid(newGrid);
 
-    // Immediate update DOM element
-    const domElement = cellsRef.current[row][col];
-    if (domElement) {
-      if (newType === CellType.WALL) {
-        domElement.style.backgroundColor = ColorType[CellType.WALL];
-        domElement.className = "cell wall";
-      } else if (newType === CellType.WEIGHTED) {
-        domElement.style.backgroundColor = ColorType[CellType.WEIGHTED];
-        domElement.className = "cell weighted";
-      } else {
-        domElement.style.backgroundColor = ColorType[CellType.EMPTY];
-        domElement.className = "cell";
-      }
-    }
+    setGrid(newGrid);
   };
 
   const handleMoveSpecialCell = (cell: Cell) => {
@@ -223,20 +212,6 @@ const PathFinder = () => {
       setStartPosition((prev) => ({ ...prev, row, col }));
     } else if (draggingType === CellType.END) {
       setEndPosition((prev) => ({ ...prev, row, col }));
-    }
-
-    // Update DOM for new position
-    const newElement = cellsRef.current[row][col];
-    if (newElement) {
-      if (draggingType === CellType.START) {
-        newElement.style.backgroundColor = ColorType[CellType.START];
-        newElement.className = "cell";
-        setStartPosition((prev) => ({ ...prev, row, col }));
-      } else if (draggingType === CellType.END) {
-        newElement.style.backgroundColor = ColorType[CellType.END];
-        newElement.className = "cell";
-        setEndPosition((prev) => ({ ...prev, row, col }));
-      }
     }
 
     setGrid(newGrid);
@@ -383,6 +358,12 @@ const PathFinder = () => {
       start: { row: startPosition.row, col: startPosition.col },
       end: { row: endPosition.row, col: endPosition.col },
     });
+
+    for (let i = 0; i <= grid.length; i++) {
+      for (let j = 0; j <= grid[0].length; j++) {
+        grid[i][j].weight = 0;
+      }
+    }
 
     setGrid(grid);
     syncDOMWithReactState(grid);
@@ -569,6 +550,10 @@ const PathFinder = () => {
                     backgroundColor = ColorType[CellType.END];
                     cellClass = "cell";
                     break;
+                  case CellType.WEIGHTED:
+                    backgroundColor = ColorType[CellType.WEIGHTED];
+                    cellClass = "cell weighted";
+                    break;
                   default:
                     backgroundColor = ColorType[CellType.EMPTY];
                     cellClass = "cell";
@@ -610,10 +595,10 @@ const PathFinder = () => {
                         handlePaintCell(cell);
                       }
                     }}
-                  />
-                  // >
-                  //   {cell.weight}
-                  // </div>
+                    // />
+                  >
+                    {cell.type}
+                  </div>
                 );
               })}
             </div>

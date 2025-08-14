@@ -35,8 +35,9 @@ const useDijkstra = ({ start, grid }: PathfindingInput) => {
       const depth = currCell.depth ?? 0;
       const type = currCell.type;
       const key = getKey(row, col);
+      const cellType = newGrid[row][col].type;
 
-      if (currCell.type === CellType.WALL) continue;
+      if (cellType === CellType.WALL) continue;
       if (visited.has(key)) continue;
       visited.add(key);
       visitedNodes.push({
@@ -45,7 +46,7 @@ const useDijkstra = ({ start, grid }: PathfindingInput) => {
         depth: depth,
       });
 
-      if (grid[row][col].type === CellType.END)
+      if (cellType === CellType.END)
         return {
           found: true,
           visited: visitedNodes,
