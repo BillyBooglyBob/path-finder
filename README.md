@@ -135,3 +135,7 @@ TODO:
   - Should weights be random and displayable?
 - Add recompute visited & path on start/end move, no need for animation
 - Add move start/end over other cells and not replace it
+
+
+- After adding weighted nodes, when visiting them, should keep the weight cell visible but current
+implementation wipes it with just the visited colour.

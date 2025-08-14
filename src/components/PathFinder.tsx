@@ -14,6 +14,7 @@ import {
   GRID_ROWS,
   SPEED,
   SPEED_NAME_MAP,
+  WEIGHTS,
   type AlgorithmType,
 } from "../util/constant";
 import { createMaze } from "../algorithms/randomisedDfsMazeGeneration";
@@ -63,7 +64,7 @@ const PathFinder = () => {
         type: CellType.EMPTY,
         row,
         col,
-        weight: 0,
+        weight: WEIGHTS.NORMAL,
       }))
     );
 
@@ -150,11 +151,19 @@ const PathFinder = () => {
               domElement.style.backgroundColor = ColorType[CellType.END];
               domElement.className = "cell";
               break;
+            case CellType.WEIGHTED:
+              domElement.style.backgroundColor = ColorType[CellType.EMPTY];
+              break;
           }
         }
       }
     }
   };
+
+  // TODO:
+  // - When visiting weighted node, just color background. Keep the cell normal.
+  // - When clearing path, reset all the weighted nodes (colour back to normal, not remain as visited or path).
+  // - When replacing wall with weight, the colour gets reset to none (fix it)
 
   const handlePaintCell = (cell: Cell) => {
     const { row, col, type } = cell;
@@ -166,12 +175,11 @@ const PathFinder = () => {
         ? CellType.EMPTY
         : paintingType;
 
-    console.log(`Current type: ${newType}`);
-
     const newGrid = grid.map((r) => [...r]);
     newGrid[row][col] = {
       ...newGrid[row][col],
-      weight: paintingType === CellType.WEIGHTED ? 1 : 0,
+      weight:
+        paintingType === CellType.WEIGHTED ? WEIGHTS.WEIGHTED : WEIGHTS.NORMAL,
       type: newType,
     };
 
@@ -293,7 +301,6 @@ const PathFinder = () => {
 
   const runAlgorithm = async () => {
     if (!algorithmToRun) return;
-    console.log(`Running ${algorithmToRun} algorithm`);
     setTraversing(true);
     clearAnimationFromDOM();
 
@@ -361,7 +368,7 @@ const PathFinder = () => {
 
     for (let i = 0; i <= grid.length; i++) {
       for (let j = 0; j <= grid[0].length; j++) {
-        grid[i][j].weight = 0;
+        grid[i][j].weight = WEIGHTS.NORMAL;
       }
     }
 
@@ -431,7 +438,7 @@ const PathFinder = () => {
                 }}
               >
                 <div
-                  className="cell"
+                  className="cell weighted"
                   style={{ backgroundColor: ColorType[CellType.WEIGHTED] }}
                 />
               </button>
@@ -562,11 +569,11 @@ const PathFinder = () => {
                 return (
                   <div
                     key={cellIdx}
+                    className={cellClass}
+                    style={{ backgroundColor }}
                     ref={(el) => {
                       cellsRef.current[rowIdx][cellIdx] = el;
                     }}
-                    className={cellClass}
-                    style={{ backgroundColor }}
                     onMouseDown={() => {
                       if (
                         cell.type === CellType.START ||
@@ -597,7 +604,13 @@ const PathFinder = () => {
                     }}
                     // />
                   >
-                    {cell.type}
+                    <div
+                      className={
+                        cell.type === CellType.WEIGHTED ? "cell weighted" : ""
+                      }
+                    >
+                      {/* {cell.weight} */}
+                    </div>
                   </div>
                 );
               })}

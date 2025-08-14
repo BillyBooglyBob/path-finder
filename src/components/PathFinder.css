@@ -63,6 +63,7 @@
 .cell.weighted {
   border-radius: 100%;
   scale: 0.8;
+  background-color: #c700a3ff;
 }
 
 .cell.visited {

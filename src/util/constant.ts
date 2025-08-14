@@ -8,6 +8,12 @@ export const ALGORITHMS = {
 } as const;
 export type AlgorithmType = (typeof ALGORITHMS)[keyof typeof ALGORITHMS];
 
+export const WEIGHTS = {
+  NORMAL: 1,
+  WEIGHTED: 2,
+} as const;
+export type WeightType = (typeof WEIGHTS)[keyof typeof WEIGHTS];
+
 export const GRID_ROWS = 23;
 export const GRID_COLS = 59;
 export const DEFAULT_START_POSITION: Cell = {

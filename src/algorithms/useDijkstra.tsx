@@ -23,6 +23,11 @@ const useDijkstra = ({ start, grid }: PathfindingInput) => {
     const queue: Cell[] = [];
     queue.push(start);
 
+    // TODO:
+    // - Weighted cells are not getting visited?
+    // - Weighted cells don't have animation?
+    // - if weighted, give extra good background color.
+
     // Look at all available cells, visit one with lowest cost (use PQ)
     while (queue.length > 0) {
       // Get cell at front with lowest cost
