@@ -14,6 +14,10 @@
   font-size: large;
   cursor: pointer;
   color: white;
+  min-width: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .button:hover {
@@ -28,7 +32,16 @@
   cursor: not-allowed;
   opacity: 0.6;
   filter: grayscale(60%);
-  /* animation: disabled-pulse 1.5s infinite ease-in-out; */
+}
+
+.tooltip-button {
+  background-color: #3e415a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 30%;
+  padding: 10px 20px;
+  border: none;
 }
 
 .title {
@@ -41,16 +54,23 @@
   width: 25px;
   height: 25px;
   background-color: #eaedf3;
-  /* border: 0.5px solid white; */
   margin: 0;
+  padding: 0;
   box-sizing: border-box;
+  border: 1px solid white;
+}
+
+.cell.weighted {
+  border-radius: 100%;
+  scale: 0.8;
 }
 
 .cell.visited {
   animation: visited 0.6s ease-out forwards;
 }
 
-.cell.wall {
+.cell.wall,
+.cell.weighted {
   animation: wall 0.3s ease-out forwards;
 }
 

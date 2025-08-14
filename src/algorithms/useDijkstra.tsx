@@ -1,43 +1,62 @@
-import { CellType, type Cell } from "../util/types";
-import { wait } from "../util/util";
+import { DIRECTIONS } from "../util/constant";
+import {
+  CellType,
+  type Cell,
+  type PathfindingInput,
+  type PathfindingResult,
+} from "../util/types";
+import { getKey } from "../util/util";
 
-interface useDijkstraProps {
-  start: Cell;
-  grid: Cell[][];
-  setGrid: (grid: Cell[][]) => void;
-}
+const useDijkstra = ({ start, grid }: PathfindingInput) => {
+  const DijkstraSearch = async (): Promise<PathfindingResult> => {
+    // Initialise cost for all cells
+    const newGrid = grid.map((r) =>
+      r.map((cell) => ({
+        ...cell,
+        costFromStart: Infinity,
+      }))
+    );
+    newGrid[start.row][start.col].costFromStart = 0;
 
-const DIRECTIONS = [
-  [0, -1],
-  [0, 1],
-  [1, 0],
-  [-1, 0],
-];
+    const visited = new Set();
+    const visitedNodes: Cell[] = [];
+    const queue: Cell[] = [];
+    queue.push(start);
 
-const useDijkstra = ({ start, grid, setGrid }: useDijkstraProps) => {
-  const DijkstraSearch = async () => {
-    const newGrid = grid.map((r) => [...r]);
-
-    const stack: Cell[] = [];
-    const visited = new Set<string>();
-
-    const getKey = (row: number, col: number) => `${row} ${col}`;
-
-    stack.push({ ...start, depth: 0 });
-    visited.add(getKey(start.row, start.col));
-
-    while (stack.length > 0) {
-      const currCell = stack.pop();
-      if (!currCell) return;
+    // Look at all available cells, visit one with lowest cost (use PQ)
+    while (queue.length > 0) {
+      // Get cell at front with lowest cost
+      queue.sort((a, b) => (a.costFromStart ?? 0) - (b.costFromStart ?? 0));
+      const currCell = queue.shift();
+      if (!currCell) continue;
 
       const row = currCell.row;
       const col = currCell.col;
-      const depth = currCell.depth;
-      const cellType = grid[row][col].type;
-      if (cellType === CellType.END) return true;
-      if (cellType === CellType.WALL) continue;
+      const depth = currCell.depth ?? 0;
+      const type = currCell.type;
+      const key = getKey(row, col);
 
-      DIRECTIONS.forEach(async ([rowChange, colChange]) => {
+      if (currCell.type === CellType.WALL) continue;
+      if (visited.has(key)) continue;
+      visited.add(key);
+      visitedNodes.push({
+        ...currCell,
+        type: type === CellType.EMPTY ? CellType.VISITED : type,
+        depth: depth,
+      });
+
+      if (grid[row][col].type === CellType.END)
+        return {
+          found: true,
+          visited: visitedNodes,
+          endCell: { ...currCell, type: CellType.END },
+        };
+
+      // Get neighbours to visit
+      const cost = currCell.costFromStart ?? 0;
+      const newDepth = depth + 1;
+
+      for (const [rowChange, colChange] of DIRECTIONS) {
         const newRow = row + rowChange;
         const newCol = col + colChange;
 
@@ -46,34 +65,30 @@ const useDijkstra = ({ start, grid, setGrid }: useDijkstraProps) => {
           newRow >= grid.length ||
           newCol < 0 ||
           newCol >= grid[0].length
-        )
-          return;
-
-        const newDepth = (depth ?? 0) + 1;
-        const newType = newGrid[newRow][newCol].type;
-
-        const key = getKey(newRow, newCol);
-        if (!visited.has(key)) {
-          stack.push({
-            type: CellType.VISITED,
-            row: newRow,
-            col: newCol,
-            depth: newDepth,
-          });
-          visited.add(key);
-          newGrid[newRow][newCol] = {
-            ...newGrid[newRow][newCol],
-            type: newType === CellType.EMPTY ? CellType.VISITED : newType,
-            depth: newDepth,
-          };
-          const updatedGrid = newGrid.map((r) => [...r]);
-          await wait(3);
-          setGrid(updatedGrid);
+        ) {
+          continue;
         }
-      });
+
+        const newCell = newGrid[newRow][newCol];
+        if (newCell.type === CellType.WALL) continue;
+
+        const currCost = newCell.costFromStart;
+        const newCost = cost + (newCell.weight ?? 0);
+        const finalCost = currCost <= newCost ? currCost : newCost;
+        queue.push({
+          row: newRow,
+          col: newCol,
+          type: CellType.VISITED,
+          depth: newDepth,
+          parent: { ...currCell },
+          costFromStart: finalCost,
+        });
+        newGrid[newRow][newCol].costFromStart = finalCost;
+      }
     }
 
-    return false;
+    // Else, return false
+    return { found: false, visited: visitedNodes };
   };
 
   return DijkstraSearch;

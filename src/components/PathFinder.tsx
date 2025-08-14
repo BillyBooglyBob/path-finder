@@ -5,21 +5,20 @@ import useBFS from "../algorithms/useBFS";
 import useDFS from "../algorithms/useDFS";
 import { wait } from "../util/util";
 import "./PathFinder.css";
-import { ColorType, SPEED } from "../util/constant";
+import {
+  ALGORITHMS,
+  ColorType,
+  DEFAULT_END_POSITION,
+  DEFAULT_START_POSITION,
+  GRID_COLS,
+  GRID_ROWS,
+  SPEED,
+  SPEED_NAME_MAP,
+  type AlgorithmType,
+} from "../util/constant";
 import { createMaze } from "../algorithms/randomisedDfsMazeGeneration";
-
-const GRID_ROWS = 23;
-const GRID_COLS = 59;
-const DEFAULT_START_POSITION: Cell = {
-  type: CellType.START,
-  row: 12,
-  col: 20,
-};
-const DEFAULT_END_POSITION: Cell = {
-  type: CellType.END,
-  row: 12,
-  col: 40,
-};
+import Tooltip from "./Tooltip";
+import useDijkstra from "../algorithms/useDijkstra";
 
 const PathFinder = () => {
   const [grid, setGrid] = useState<Cell[][]>([]);
@@ -28,12 +27,17 @@ const PathFinder = () => {
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [draggingType, setDraggingType] = useState<CellType | null>(null); // START, END, or null
   const lastDraggedPosition = useRef<{ row: number; col: number } | null>(null);
-  const [algorithmToRun, setAlgorithmToRun] = useState<"BFS" | "DFS" | null>(
-    null
+  const [algorithmToRun, setAlgorithmToRun] = useState<AlgorithmType>(
+    ALGORITHMS.BFS
   );
   const cellsRef = useRef<(HTMLDivElement | null)[][]>([]);
   const [traversing, setTraversing] = useState(false);
+  const [speed, setSpeed] = useState<(typeof SPEED)[keyof typeof SPEED]>(
+    SPEED.medium
+  );
   const speedRef = useRef(SPEED.medium);
+  // WALL, WEIGHTED, or null
+  const [paintingType, setPaintingType] = useState<CellType>(CellType.WALL);
 
   useEffect(() => {
     cellsRef.current = Array.from({ length: GRID_ROWS }, () =>
@@ -59,6 +63,7 @@ const PathFinder = () => {
         type: CellType.EMPTY,
         row,
         col,
+        weight: 0,
       }))
     );
 
@@ -68,7 +73,6 @@ const PathFinder = () => {
       CellType.END;
 
     setGrid(newGrid);
-    console.log("Initial grid:", newGrid);
     syncDOMWithReactState(newGrid);
   };
 
@@ -116,7 +120,6 @@ const PathFinder = () => {
     }
   };
 
-  // Clear only animation-related visual elements (visited/path) from DOM
   const clearAnimationFromDOM = () => {
     for (let row = 0; row < GRID_ROWS; row++) {
       for (let col = 0; col < GRID_COLS; col++) {
@@ -158,10 +161,16 @@ const PathFinder = () => {
 
     if (type === CellType.START || type === CellType.END) return;
 
-    const newType = type === CellType.WALL ? CellType.EMPTY : CellType.WALL;
+    const newType =
+      type === CellType.WALL || type === CellType.WEIGHTED
+        ? CellType.EMPTY
+        : paintingType;
 
     const newGrid = grid.map((r) => [...r]);
-    newGrid[row][col].type = newType;
+    newGrid[row][col] = {
+      ...newGrid[row][col],
+      weight: paintingType === CellType.WEIGHTED ? 1 : 0,
+    };
     setGrid(newGrid);
 
     // Immediate update DOM element
@@ -170,6 +179,9 @@ const PathFinder = () => {
       if (newType === CellType.WALL) {
         domElement.style.backgroundColor = ColorType[CellType.WALL];
         domElement.className = "cell wall";
+      } else if (newType === CellType.WEIGHTED) {
+        domElement.style.backgroundColor = ColorType[CellType.WEIGHTED];
+        domElement.className = "cell weighted";
       } else {
         domElement.style.backgroundColor = ColorType[CellType.EMPTY];
         domElement.className = "cell";
@@ -264,8 +276,8 @@ const PathFinder = () => {
         domElement.className = "cell path";
       }
 
-      if (i % 2 === 0) {
-        await wait(30);
+      if (i % 5 === 0) {
+        await wait(speedRef.current);
       }
     }
   };
@@ -304,61 +316,66 @@ const PathFinder = () => {
     }
   };
 
-  useEffect(() => {
+  const runAlgorithm = async () => {
     if (!algorithmToRun) return;
+    console.log(`Running ${algorithmToRun} algorithm`);
+    setTraversing(true);
+    clearAnimationFromDOM();
 
-    const runAlgorithm = async () => {
-      console.log(`Running ${algorithmToRun} algorithm`);
-      setTraversing(true);
-      clearAnimationFromDOM();
+    try {
+      let result;
 
-      try {
-        let result;
-
-        switch (algorithmToRun) {
-          case "BFS":
-            const handleBFS = useBFS({
-              start: startPosition,
-              grid: grid,
-            });
-            result = await handleBFS();
-            break;
-          case "DFS":
-            const handleDFS = useDFS({
-              start: startPosition,
-              grid: grid,
-            });
-            result = await handleDFS();
-            break;
-        }
-
-        if (result) {
-          const { found, endCell, visited } = result;
-          await visualiseVisitedDom(visited);
-          if (found) {
-            await wait(300); // Wait for the visited animation to finish before showing the path
-            await visualisePathDom(endCell);
-          }
-        }
-      } finally {
-        setAlgorithmToRun(null);
-        setTraversing(false);
+      switch (algorithmToRun) {
+        case "bfs":
+          const handleBFS = useBFS({
+            start: startPosition,
+            grid: grid,
+          });
+          result = await handleBFS();
+          break;
+        case "dfs":
+          const handleDFS = useDFS({
+            start: startPosition,
+            grid: grid,
+          });
+          result = await handleDFS();
+          break;
+        case "dijkstra":
+          const handleDijkstra = useDijkstra({
+            start: startPosition,
+            grid: grid,
+          });
+          result = await handleDijkstra();
       }
-    };
 
-    runAlgorithm();
-  }, [algorithmToRun]);
+      if (result) {
+        const { found, endCell, visited } = result;
+        await visualiseVisitedDom(visited);
+        if (found) {
+          await wait(300); // Wait for the visited animation to finish before showing the path
+          await visualisePathDom(endCell);
+        }
+      }
+    } finally {
+      setTraversing(false);
+    }
+  };
 
   const runBFS = () => {
-    setAlgorithmToRun("BFS");
+    setAlgorithmToRun(ALGORITHMS.BFS);
   };
 
   const runDFS = () => {
-    setAlgorithmToRun("DFS");
+    setAlgorithmToRun(ALGORITHMS.DFS);
+  };
+
+  const runDijkstra = () => {
+    setAlgorithmToRun(ALGORITHMS.DIJKSTRA);
   };
 
   const handleSpeedChange = (speed: (typeof SPEED)[keyof typeof SPEED]) => {
     speedRef.current = speed;
+    setSpeed(speed);
   };
 
   const handlerandomisedDfsMazeGeneration = () => {
@@ -398,45 +415,58 @@ const PathFinder = () => {
             gap: "20px",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <div
-              className="cell"
-              style={{ backgroundColor: ColorType[CellType.WALL] }}
-            />
-            <p>Wall</p>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <div
-              className="cell"
-              style={{ backgroundColor: ColorType[CellType.START] }}
-            />
-            <p>Start</p>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <div
-              className="cell"
-              style={{ backgroundColor: ColorType[CellType.END] }}
-            />
-            <p>End</p>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <div
-              className="cell"
-              style={{ backgroundColor: ColorType[CellType.VISITED] }}
-            />
-            <p>Visited</p>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <div
-              className="cell"
-              style={{ backgroundColor: ColorType[CellType.PATH] }}
-            />
-            <p>Path</p>
+          <div
+            style={{
+              display: "flex",
+              gap: "1rem",
+            }}
+          >
+            <Tooltip content="Wall">
+              <button
+                className="tooltip-button"
+                onClick={() => setPaintingType(CellType.WALL)}
+                style={{
+                  filter: `${
+                    paintingType === CellType.WALL ? "brightness(80%)" : "none"
+                  }`,
+                }}
+              >
+                <div
+                  className="cell"
+                  style={{ backgroundColor: ColorType[CellType.WALL] }}
+                />
+              </button>
+            </Tooltip>
+            <Tooltip content="Weight">
+              <button
+                className="tooltip-button"
+                onClick={() => setPaintingType(CellType.WEIGHTED)}
+                style={{
+                  filter: `${
+                    paintingType === CellType.WEIGHTED
+                      ? "brightness(80%)"
+                      : "none"
+                  }`,
+                }}
+              >
+                <div
+                  className="cell"
+                  style={{ backgroundColor: ColorType[CellType.WEIGHTED] }}
+                />
+              </button>
+            </Tooltip>
           </div>
         </div>
         <div style={{ display: "flex", gap: "1rem" }}>
+          <button
+            className="button"
+            disabled={traversing}
+            onClick={runAlgorithm}
+          >
+            Run
+          </button>
           <Dropdown
-            title="Speed"
+            title={SPEED_NAME_MAP[speed]}
             buttons={[
               {
                 name: "Slow",
@@ -453,7 +483,7 @@ const PathFinder = () => {
             ]}
           />
           <Dropdown
-            title="Algorithms"
+            title={algorithmToRun}
             disabled={traversing}
             buttons={[
               {
@@ -464,10 +494,10 @@ const PathFinder = () => {
                 name: "Depth First Search",
                 action: runDFS,
               },
-              // {
-              //   name: "Dijkstra Search",
-              //   action: () => console.log("Dijkstra searching..."),
-              // },
+              {
+                name: "Dijkstra Search",
+                action: runDijkstra,
+              },
             ]}
           />
           <Dropdown
@@ -513,7 +543,7 @@ const PathFinder = () => {
             display: "flex",
             flexDirection: "column",
             gap: "1px",
-            backgroundColor: "white",
+            backgroundColor: "#eaedf3",
           }}
         >
           {grid.map((row, rowIdx) => (
@@ -581,7 +611,9 @@ const PathFinder = () => {
                       }
                     }}
                   />
-                  // >{cell.type}</div>
+                  // >
+                  //   {cell.weight}
+                  // </div>
                 );
               })}
             </div>
