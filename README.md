@@ -119,26 +119,8 @@
 TODO:
 
 - Much better UI
-  - Rounded edges for grid
-  - Changeable speed (add as sleek dropdown)
-  - Colour
-    - Gray walls
-    - Lighter toned start/end
-  - Wall animation
-    - Bigger scaling
-    - Scale from big to normal
-  - Cleaner UI panel
-  - Separate select algorithm and run
   - Info bar with short description of each algorithm
-- Add Dijkstra
-  - Add new weighted cell type
-  - BFS & DFS don't enable weighted cell (no weighted cell in grid, need to reset it if other wise)
-    - Clear weighted cell function (replace weighted cell with empty)
-  - A\* and Dijkstra enable add weighted cell (give all cells default 0 weight, weighted cell have 1)
-  - Initialise grid (no matter the algorithm, just give default 0 weight by default. Easy to handle)
-  - Select between wall and weight nodes (Easy select, two options both visible) (have hoverable tooltip)
-  - Should weights be random and displayable?
+  - Rounded edges for grid
+  - Cleaner UI panel
 - Add recompute visited & path on start/end move, no need for animation
 - Add move start/end over other cells and not replace it
-
-- Add wall switched to weight or vice versa, the color needs to change
