@@ -6,6 +6,7 @@ import useDFS from "../algorithms/useDFS";
 import { wait } from "../util/util";
 import "./PathFinder.css";
 import {
+  ALGORITHM_DESCRIPTIONS,
   ALGORITHMS,
   ColorType,
   DEFAULT_END_POSITION,
@@ -20,6 +21,7 @@ import {
 import { createMaze } from "../algorithms/randomisedDfsMazeGeneration";
 import Tooltip from "./Tooltip";
 import useDijkstra from "../algorithms/useDijkstra";
+import { Info } from "lucide-react";
 
 const PathFinder = () => {
   const [grid, setGrid] = useState<Cell[][]>([]);
@@ -404,130 +406,169 @@ const PathFinder = () => {
       <header
         style={{
           display: "flex",
-          flex: "1",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "0px 20px",
+          flexDirection: "column",
           gap: "10px",
+          justifyContent: "space-between",
         }}
       >
-        <h1 className="title">Path Finder</h1>
         <div
           style={{
             display: "flex",
-            gap: "20px",
+            flex: "1",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "10px 20px",
+            gap: "10px",
+          }}
+        >
+          <h1 className="title">Path Finder</h1>
+          <div
+            style={{
+              display: "flex",
+              gap: "20px",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                gap: "1rem",
+              }}
+            >
+              <Tooltip content="Wall">
+                <button
+                  className="tooltip-button"
+                  onClick={() => setPaintingType(CellType.WALL)}
+                  style={{
+                    filter: `${
+                      paintingType === CellType.WALL
+                        ? "brightness(80%)"
+                        : "none"
+                    }`,
+                  }}
+                >
+                  <div
+                    className="cell"
+                    style={{ backgroundColor: ColorType[CellType.WALL] }}
+                  />
+                </button>
+              </Tooltip>
+              <Tooltip content="Weight">
+                <button
+                  onClick={() => setPaintingType(CellType.WEIGHTED)}
+                  disabled={
+                    algorithmToRun === "bfs" || algorithmToRun === "dfs"
+                  }
+                  className="tooltip-button"
+                  style={{
+                    filter: `${
+                      paintingType === CellType.WEIGHTED
+                        ? "brightness(80%)"
+                        : "none"
+                    }`,
+                  }}
+                >
+                  <div
+                    className="cell weighted"
+                    style={{ backgroundColor: ColorType[CellType.WEIGHTED] }}
+                  />
+                </button>
+              </Tooltip>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "1rem" }}>
+            <button
+              className="button"
+              disabled={traversing}
+              onClick={runAlgorithm}
+            >
+              Run
+            </button>
+            <Dropdown
+              title={SPEED_NAME_MAP[speed]}
+              buttons={[
+                {
+                  name: "Slow",
+                  action: () => handleSpeedChange(SPEED.slow),
+                },
+                {
+                  name: "Medium",
+                  action: () => handleSpeedChange(SPEED.medium),
+                },
+                {
+                  name: "Fast",
+                  action: () => handleSpeedChange(SPEED.fast),
+                },
+              ]}
+            />
+            <Dropdown
+              title={algorithmToRun}
+              disabled={traversing}
+              buttons={[
+                {
+                  name: "Breadth First Search",
+                  action: runBFS,
+                },
+                {
+                  name: "Depth First Search",
+                  action: runDFS,
+                },
+                {
+                  name: "Dijkstra Search",
+                  action: runDijkstra,
+                },
+              ]}
+            />
+            <Dropdown
+              title="Generate maze"
+              disabled={traversing}
+              buttons={[
+                {
+                  name: "Recursive maze",
+                  action: handlerandomisedDfsMazeGeneration,
+                },
+                // {
+                //   name: "Big curve",
+                //   action: () => console.log("Generating big curve"),
+                // },
+              ]}
+            />
+            <button
+              className="button"
+              disabled={traversing}
+              onClick={resetGrid}
+            >
+              Reset Grid
+            </button>
+            <button
+              className="button"
+              disabled={traversing}
+              onClick={clearAnimationFromDOM}
+            >
+              Clear Path
+            </button>
+          </div>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "50px",
           }}
         >
           <div
             style={{
+              textWrap: "wrap",
+              width: "50%",
               display: "flex",
-              gap: "1rem",
+              alignItems: "center",
+              gap: "10px",
+              justifyContent: "center",
+              textAlign: "center",
             }}
           >
-            <Tooltip content="Wall">
-              <button
-                className="tooltip-button"
-                onClick={() => setPaintingType(CellType.WALL)}
-                style={{
-                  filter: `${
-                    paintingType === CellType.WALL ? "brightness(80%)" : "none"
-                  }`,
-                }}
-              >
-                <div
-                  className="cell"
-                  style={{ backgroundColor: ColorType[CellType.WALL] }}
-                />
-              </button>
-            </Tooltip>
-            <Tooltip content="Weight">
-              <button
-                onClick={() => setPaintingType(CellType.WEIGHTED)}
-                disabled={algorithmToRun === "bfs" || algorithmToRun === "dfs"}
-                className="tooltip-button"
-                style={{
-                  filter: `${
-                    paintingType === CellType.WEIGHTED
-                      ? "brightness(80%)"
-                      : "none"
-                  }`,
-                }}
-              >
-                <div
-                  className="cell weighted"
-                  style={{ backgroundColor: ColorType[CellType.WEIGHTED] }}
-                />
-              </button>
-            </Tooltip>
+            <Info /> {ALGORITHM_DESCRIPTIONS[algorithmToRun]}
           </div>
-        </div>
-        <div style={{ display: "flex", gap: "1rem" }}>
-          <button
-            className="button"
-            disabled={traversing}
-            onClick={runAlgorithm}
-          >
-            Run
-          </button>
-          <Dropdown
-            title={SPEED_NAME_MAP[speed]}
-            buttons={[
-              {
-                name: "Slow",
-                action: () => handleSpeedChange(SPEED.slow),
-              },
-              {
-                name: "Medium",
-                action: () => handleSpeedChange(SPEED.medium),
-              },
-              {
-                name: "Fast",
-                action: () => handleSpeedChange(SPEED.fast),
-              },
-            ]}
-          />
-          <Dropdown
-            title={algorithmToRun}
-            disabled={traversing}
-            buttons={[
-              {
-                name: "Breadth First Search",
-                action: runBFS,
-              },
-              {
-                name: "Depth First Search",
-                action: runDFS,
-              },
-              {
-                name: "Dijkstra Search",
-                action: runDijkstra,
-              },
-            ]}
-          />
-          <Dropdown
-            title="Generate maze"
-            disabled={traversing}
-            buttons={[
-              {
-                name: "Recursive maze",
-                action: handlerandomisedDfsMazeGeneration,
-              },
-              // {
-              //   name: "Big curve",
-              //   action: () => console.log("Generating big curve"),
-              // },
-            ]}
-          />
-          <button className="button" disabled={traversing} onClick={resetGrid}>
-            Reset Grid
-          </button>
-          <button
-            className="button"
-            disabled={traversing}
-            onClick={clearAnimationFromDOM}
-          >
-            Clear Path
-          </button>
         </div>
       </header>
 

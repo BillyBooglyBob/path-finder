@@ -8,6 +8,13 @@ export const ALGORITHMS = {
 } as const;
 export type AlgorithmType = (typeof ALGORITHMS)[keyof typeof ALGORITHMS];
 
+export const ALGORITHM_DESCRIPTIONS: Record<AlgorithmType, string> = {
+  bfs: "Breath First Search is NOT weighted but guarantees the shortest path",
+  dfs: "Depth First Search is NOT weighted and DOES NOT guarantee the shortest path",
+  dijkstra: "Dijkstra's Algorithm is weighted and guarantees the shortest path",
+  "a*": "Uses heuristics to find the shortest path more efficiently than Dijkstra",
+};
+
 export const WEIGHTS = {
   NORMAL: 1,
   WEIGHTED: 2,
